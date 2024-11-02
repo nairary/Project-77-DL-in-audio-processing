@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio File Analysis</title>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start; /* Изменяем на flex-start, чтобы контент отображался сверху */
+            min-height: 100vh; /* Используем минимальную высоту для поддержания прокрутки */
+            background: linear-gradient(135deg, #f0f4f7, #c9d6ff);
+            margin: 0;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        #upload-form {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        input[type="file"] {
+            padding: 10px;
+            background-color: #fff;
+            border: 2px solid #ccc;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button {
+            margin-left: 10px;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 1200px;
+            margin-bottom: 50px; /* Добавляем отступ внизу страницы */
+        }
+        .graph-container {
+            width: 100%;
+            margin-bottom: 20px;
+            overflow-y:auto;
+        }
+        #loading {
+            display: none;
+            margin-top: 20px;
+            font-size: 1.2em;
+            color: #333;
+        }
+        footer {
+            margin-top: 30px;
+            color: #666;
+            font-size: 0.9em;
+        }
+        #combined-plot {
+    width: 100%;
+    height: 100%; /* Убедитесь, что график занимает всё пространство контейнера */
+}
+    </style>
+    <!-- Подключение Plotly.js -->
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+
+    <h1>Audio File Analysis</h1>
+
+    <form id="upload-form" enctype="multipart/form-data">
+        <input type="file" id="audio-file" name="file" accept="audio/*">
+        <button type="submit">Upload & Analyze</button>
+    </form>
+
+    <div class="container">
+        <div id="combined-plot" class="graph-container"></div>
+
+        <h2>MIDI Notes</h2>
+        <p id="midi-notes">MIDI Notes will appear here</p>
+    </div>
+
+    <div id="loading">Processing...</div>
+
+    <footer>
+        &copy; 2024 Audio Analysis Tool - Made with ❤️ by your team
+    </footer>
+
+    <script>
+        const form = document.getElementById("upload-form");
+        const combinedPlotDiv = document.getElementById("combined-plot");
+        const midiNotesEl = document.getElementById("midi-notes");
+        const loadingEl = document.getElementById("loading");
+    
+        form.addEventListener("submit", async function (event) {
+            event.preventDefault();
+    
+            const fileInput = document.getElementById("audio-file");
+            const file = fileInput.files[0];
+    
+            if (!file) {
+                alert("Please select an audio file first!");
+                return;
+            }
+    
+            const formData = new FormData();
+            formData.append("file", file);
+    
+            loadingEl.style.display = "block";
+    
+            try {
+                const response = await fetch("/upload/", {
+                    method: "POST",
+                    body: formData,
+                });
+    
+                const data = await response.json();
+    
+                // Очищаем содержимое контейнера графика перед вставкой нового графика
+                combinedPlotDiv.innerHTML = '';
+    
+                // Парсим данные графика из JSON
+                const combinedPlotData = JSON.parse(data.combined_plot);
+    
+                // Используем Plotly для отображения объединенного графика
+                Plotly.newPlot(combinedPlotDiv, combinedPlotData.data, combinedPlotData.layout);
+    
+                midiNotesEl.innerText = data.midi_notes;
+    
+            } catch (error) {
+                console.error("Error uploading the file:", error);
+            } finally {
+                loadingEl.style.display = "none";
+            }
+        });
+    </script>
+
+</body>
+</html>
