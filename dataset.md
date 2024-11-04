@@ -3,6 +3,11 @@ https://disk.yandex.ru/d/OwgxFdiQ0JiE9w
 
 # Описание
 ## Songsterr
+
+
+### Для сбора данных с сайта сонгстер был написан [скрапер](https://github.com/nairary/Project-77-DL-in-audio-processing/tree/main/Dataset/Songster)
+
+
 - Songsterr.zip - датасет на 474 трека состоящий из:
 - songs_data.json - метаданные по аудио-файлам
 - donwloads_audio - скачанные с ютуб аудио
