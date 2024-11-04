@@ -10,3 +10,9 @@
 ## Wiki
 
 Мб стоит здесь ссылку прикрепить на нее, хз
+
+## Полезные ссылки
+https://arxiv.org/pdf/2302.00286
+https://github.com/vpavlenko/study-music/blob/main/parts/transcription.md
+https://paperswithcode.com/dataset/fma
+https://github.com/KinWaiCheuk/Jointist
