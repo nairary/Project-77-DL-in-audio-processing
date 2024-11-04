@@ -9,9 +9,10 @@
 
 ## Wiki
 
-Мб стоит здесь ссылку прикрепить на нее, хз
+[Wiki](https://github.com/nairary/Project-77-DL-in-audio-processing/wiki/Dev‐vlog‐01)
 
 ## Полезные ссылки
+(потом уберу)
 https://arxiv.org/pdf/2302.00286
 https://github.com/vpavlenko/study-music/blob/main/parts/transcription.md
 https://paperswithcode.com/dataset/fma
