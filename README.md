@@ -19,3 +19,4 @@ https://paperswithcode.com/dataset/fma
 https://github.com/KinWaiCheuk/Jointist
 https://arxiv.org/html/2402.15569v1
 https://colinraffel.com/publications/thesis.pdf
+https://github.com/craffel/midi-dataset/tree/master
