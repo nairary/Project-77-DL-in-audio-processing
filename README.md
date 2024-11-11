@@ -14,9 +14,23 @@
 ## Полезные ссылки
 (потом уберу)
 https://arxiv.org/pdf/2302.00286
+
+
 https://github.com/vpavlenko/study-music/blob/main/parts/transcription.md
+
+
 https://paperswithcode.com/dataset/fma
+
+
 https://github.com/KinWaiCheuk/Jointist
+
+
 https://arxiv.org/html/2402.15569v1
+
+
 https://colinraffel.com/publications/thesis.pdf
+
+
 https://github.com/craffel/midi-dataset/tree/master
+
+https://raw.githubusercontent.com/chrisdonahue/sheetsage/paper/sheetsage.pdf
