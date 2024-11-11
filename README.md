@@ -34,3 +34,5 @@ https://colinraffel.com/publications/thesis.pdf
 https://github.com/craffel/midi-dataset/tree/master
 
 https://raw.githubusercontent.com/chrisdonahue/sheetsage/paper/sheetsage.pdf
+
+https://github.com/chrisdonahue/sheetsage/tree/main
