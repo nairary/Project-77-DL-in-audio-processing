@@ -1,27 +1,11 @@
-from typing import List, Union, Dict, Any
+from typing import List, Literal, Dict, Any
 from pydantic import BaseModel
-
-class ModelConfig(BaseModel):
-    id: str
-    hyperparameters: Dict[str, Any]
 
 class FitRequest(BaseModel):
     hyperparametes: Dict[str, Any]
 
-class LoadRequest(BaseModel):
-    id: str
-
-class LoadResponse(BaseModel):
-   id: str
-
-class UnloadResponse(BaseModel):
-    message: str
-
 class PredictRequest(BaseModel):
     X: List[List[float]]
-
-class DeleteResponse(BaseModel):
-    message: str
 
 class GetStatusResponse(BaseModel):
     status: str
@@ -49,3 +33,6 @@ class GetStatusResponse(BaseModel):
 
 class DeleteResponse(BaseModel):
     message: str
+
+class CollisionResolver:
+    mode: Literal["min", "max"]

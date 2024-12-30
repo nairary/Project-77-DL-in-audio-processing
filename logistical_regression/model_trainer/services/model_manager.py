@@ -5,7 +5,7 @@ import numpy as np
 import librosa
 import pretty_midi
 from sklearn.utils.class_weight import compute_class_weight
-from typing import List, Union
+from typing import List
 from sklearn.linear_model import SGDClassifier
 
 from settings.config import (MP3_VOCALS_DIR, MIDI_VOCALS_DIR, MATCH_SCORES_PATH, MODELS_DIR, FEATURES_DIR, MAX_PROCESSES, MAX_LOADED_MODELS)
@@ -120,7 +120,7 @@ def generate_labels_from_vocal_midi(vocals_wav: str, midi_path: str, collision_r
 
     return labels
 
-def extract_and_save_data() -> None:
+def extract_and_save_data(collision_resolver='min') -> None:
     """
     1) Для каждого MSD ID ищет vocals.wav
     2) Находит MIDI (из lmd_aligned_vocals по best_md5),
@@ -183,7 +183,7 @@ def extract_and_save_data() -> None:
             continue
 
         # Генерируем labels
-        labels = generate_labels_from_vocal_midi(vocals_wav, midi_path)
+        labels = generate_labels_from_vocal_midi(vocals_wav, midi_path, collision_resolver)
 
         # Извлекаем фичи
         audio, _ = librosa.load(vocals_wav, sr=SR)

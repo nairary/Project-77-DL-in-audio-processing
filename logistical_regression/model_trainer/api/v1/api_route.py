@@ -18,31 +18,25 @@ from services.process_manager import (
 )
 from serializers.serializers import (
     FitRequest,
-    ModelConfig,
-    LoadRequest,
-    LoadResponse,
-    UnloadResponse,
+    CollisionResolver,
     PredictRequest,
     DeleteResponse,
-    GetStatusResponse,
-    PredictRequest,
     MessageResponse,
     PredictionResponse,
     FitResponse,
     ModelListResponse,
     ProcessStatusResponse,
-    GetStatusResponse,
     DeleteResponse
 )
 
 router = APIRouter()
 
 @router.post("/extract_features", response_model=MessageResponse, status_code=HTTPStatus.OK)
-async def extract_features():
+async def extract_features(resolver: CollisionResolver):
     process_id = "extract_features"
     try:
         await start_process(process_id, "extract_features")
-        extract_and_save_data()
+        extract_and_save_data(resolver.mode)
         await end_process(process_id)
         return MessageResponse(message="Audio and MIDI features were extracted successfully")
     except Exception as e:
@@ -92,8 +86,8 @@ async def list_models():
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-@router.get("/get_status", response_model=ProcessStatusResponse, status_code=HTTPStatus.OK)
-async def get_status():
+@router.get("/get_processes_status", response_model=ProcessStatusResponse, status_code=HTTPStatus.OK)
+async def get_processes_status():
     try:
         active_processes = get_active_processes()
         if not active_processes:

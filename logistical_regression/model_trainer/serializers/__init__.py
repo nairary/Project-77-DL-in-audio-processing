@@ -1,5 +1,6 @@
 from .serializers import (
     FitRequest,
+    CollisionResolver,
     ModelConfig,
     LoadRequest,
     LoadResponse,
@@ -19,12 +20,9 @@ from .serializers import (
 
 __all__ = [
     "FitRequest",
-    "LoadRequest",
-    "LoadResponse",
-    "UnloadResponse",
+    "CollisionResolver",
     "PredictRequest",
     "DeleteResponse",
-    "ModelConfig",
     "GetStatusResponse",
     "PredictRequest",
     "MessageResponse",
