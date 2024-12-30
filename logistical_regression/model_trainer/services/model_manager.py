@@ -379,31 +379,31 @@ def midi_from_prediction(y_pred: List[int], hop_length: int, sr: int, out_midi_p
     pm.write(out_midi_path)
     print(f"[INFO] Saved predicted MIDI to {out_midi_path}")
 
-    ################################ FUNCTIONS FOR API ################################
-    def train_model(request: FitRequest):
-        model = train_baseline_model_from_npz(FEATURES_DIR, request.hyperparameters)
-        joblib.dump(model, request.id)
-        print(f"[INFO] Saved model id {request.id}  to {FEATURES_DIR}")
+################################ FUNCTIONS FOR API ################################
+def train_model(request: FitRequest):
+    model = train_baseline_model_from_npz(FEATURES_DIR, request.hyperparameters)
+    joblib.dump(model, request.id)
+    print(f"[INFO] Saved model id {request.id}  to {FEATURES_DIR}")
 
-    def predict_model(file: UploadFile = File(...)):
-        try:
-            loaded_model = joblib.load(MODEL_NAME)
-            print(f"[INFO] {MODEL_NAME} loaded.")
-        except FileNotFoundError:
-            loaded_model = None
-            print(f"[WARN] {MODEL_NAME} not found, please train/save first.")
+def predict_model(file: UploadFile = File(...)):
+    try:
+        loaded_model = joblib.load(MODEL_NAME)
+        print(f"[INFO] {MODEL_NAME} loaded.")
+    except FileNotFoundError:
+        loaded_model = None
+        print(f"[WARN] {MODEL_NAME} not found, please train/save first.")
 
-        if loaded_model is not None:
-            audio, sr_ = librosa.load(file, sr=SR)
-            # 1. Предикт (кадры -> MIDI pitch / -1)
-            y_pred = predict_pitch_sequence(loaded_model, audio, sr_)
+    if loaded_model is not None:
+        audio, sr_ = librosa.load(file, sr=SR)
+        # 1. Предикт (кадры -> MIDI pitch / -1)
+        y_pred = predict_pitch_sequence(loaded_model, audio, sr_)
 
-            # 2. Создаём MIDI из y_pred
-            out_midi_path = os.path.join(PREDICTIONS_DIR, f"prediction_{file.filename}.mid")
-            midi_from_prediction(
-                y_pred=y_pred,
-                hop_length=HOP_LENGTH,
-                sr=SR,
-                out_midi_path=out_midi_path
-            )
-            print("First 50 frames (MIDI or -1):", y_pred[:50])
+        # 2. Создаём MIDI из y_pred
+        out_midi_path = os.path.join(PREDICTIONS_DIR, f"prediction_{file.filename}.mid")
+        midi_from_prediction(
+            y_pred=y_pred,
+            hop_length=HOP_LENGTH,
+            sr=SR,
+            out_midi_path=out_midi_path
+        )
+        print("First 50 frames (MIDI or -1):", y_pred[:50])

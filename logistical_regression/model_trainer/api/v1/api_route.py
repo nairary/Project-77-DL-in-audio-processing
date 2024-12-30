@@ -6,7 +6,7 @@ from services.model_manager import (
     extract_and_save_data,
     train_model,
     predict_model,
-    get_models,
+    # get_models
 )
 from services.process_manager import (
     start_process,
@@ -18,7 +18,7 @@ from serializers.serializers import (
     MessageResponse,
     PredictionResponse,
     FitResponse,
-    ModelListResponse,
+    # ModelListResponse
 )
 
 router = APIRouter()
@@ -61,10 +61,10 @@ async def predict(file: UploadFile = File(...)):
         await end_process(process_id)
         raise HTTPException(status_code=400, detail=str(e))
 
-@router.get("/list_models", response_model=ModelListResponse, status_code=HTTPStatus.OK)
-async def list_models():
-    try:
-        models = get_models()
-        return ModelListResponse(models=models)
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+# @router.get("/list_models", response_model=ModelListResponse, status_code=HTTPStatus.OK)
+# async def list_models():
+#     try:
+#         models = get_models()
+#         return ModelListResponse(models=models)
+#     except Exception as e:
+#         raise HTTPException(status_code=400, detail=str(e))

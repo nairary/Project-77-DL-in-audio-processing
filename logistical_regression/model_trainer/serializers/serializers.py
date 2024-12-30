@@ -31,5 +31,5 @@ class FitResponse(BaseModel):
 class ModelListResponse(BaseModel):
     models: List[Dict[str, str]]
 
-class CollisionResolver:
+class CollisionResolver(BaseModel):
     mode: Literal["min", "max"]
