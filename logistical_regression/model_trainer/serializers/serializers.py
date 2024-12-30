@@ -1,11 +1,19 @@
-from typing import List, Literal, Dict, Any
+from typing import List, Literal, Dict, Any, Optional
 from pydantic import BaseModel
 
 class FitRequest(BaseModel):
-    hyperparametes: Dict[str, Any]
+    id: int
+    hyperparameters: Dict[str, Any]
 
-class PredictRequest(BaseModel):
-    X: List[List[float]]
+    # Ограничения на гиперпараметры
+    n_jobs: Optional[int] = None
+    penalty: Optional[Literal["l2", "l1", "elasticnet"]] = None
+    loss: Optional[
+        Literal[
+            "hinge", "log_loss", "log", "modified_huber", "squared_hinge",
+            "perceptron", "squared_error", "huber", "epsilon_insensitive", "squared_epsilon_insensitive"
+        ]
+    ] = None
 
 class GetStatusResponse(BaseModel):
     status: str
@@ -22,17 +30,6 @@ class FitResponse(BaseModel):
 
 class ModelListResponse(BaseModel):
     models: List[Dict[str, str]]
-
-class ProcessStatusResponse(BaseModel):
-    status: str
-    processes: List[Dict[str, str]]
-
-class GetStatusResponse(BaseModel):
-    status: str
-    models: List[str]
-
-class DeleteResponse(BaseModel):
-    message: str
 
 class CollisionResolver:
     mode: Literal["min", "max"]

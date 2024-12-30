@@ -5,6 +5,7 @@ from services.model_manager import (
     extract_and_save_data,
     sgd_train_iterative,
     train_baseline_model_from_npz,
+    train_model,
     predict_pitch_sequence,
     midi_from_prediction
 )
@@ -22,6 +23,7 @@ __all__ = [
     "extract_and_save_data",
     "sgd_train_iterative",
     "train_baseline_model_from_npz",
+    "train_model",
     "predict_pitch_sequence",
     "midi_from_prediction",
     "start_process",

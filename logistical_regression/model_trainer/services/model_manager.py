@@ -4,11 +4,14 @@ import math
 import numpy as np
 import librosa
 import pretty_midi
+import joblib
 from sklearn.utils.class_weight import compute_class_weight
-from typing import List
+from fastapi import UploadFile, File
+from typing import List, Dict, Any
 from sklearn.linear_model import SGDClassifier
 
-from settings.config import (MP3_VOCALS_DIR, MIDI_VOCALS_DIR, MATCH_SCORES_PATH, MODELS_DIR, FEATURES_DIR, MAX_PROCESSES, MAX_LOADED_MODELS)
+from settings.config import (MP3_VOCALS_DIR, MIDI_VOCALS_DIR, MATCH_SCORES_PATH, MODELS_DIR, FEATURES_DIR, PREDICTIONS_DIR)
+from serializers.serializers import (FitRequest)
 
 # константы
 SR = 22050
@@ -214,7 +217,7 @@ def extract_and_save_data(collision_resolver='min') -> None:
 
 ################################ FIT ################################
 
-def sgd_train_iterative(X: List[List[float]], y: List[float], n_epochs: int = 10, batch_size: int = 1000, n_jobs: int = -1) -> SGDClassifier:
+def sgd_train_iterative(X: List[List[float]], y: List[float], n_epochs: int = 10, batch_size: int = 1000, hyperparameters: Dict[str, Any] = {}) -> SGDClassifier:
     """
     Итеративно обучает SGDClassifier на X, y, 
     разбивая данные на mini-batches (batch_size).
@@ -235,13 +238,13 @@ def sgd_train_iterative(X: List[List[float]], y: List[float], n_epochs: int = 10
 
     # Создаём модель. Параметры для примера:
     clf = SGDClassifier(
-        loss="log_loss",
-        penalty="l2",
+        loss=hyperparameters.get("loss", "log_loss"),
+        penalty=hyperparameters.get("penalty", "l2"),
         max_iter=2,         # Мы будем сами управлять циклами (n_epochs)
         class_weight=class_weight_dict,
         warm_start=True,     # Чтобы обучаться итеративно, не сбрасывая веса
         shuffle=False,       # Будем сами решать, хотим ли перемешивать
-        n_jobs=n_jobs       # Использовать несколько ядер
+        n_jobs=hyperparameters.get("n_jobs", -1)       # Использовать несколько ядер
     )
     
     # Инициализируем модель "нулевым" fit (чтобы задать параметры и создать структуру)
@@ -284,7 +287,7 @@ def sgd_train_iterative(X: List[List[float]], y: List[float], n_epochs: int = 10
 
     return clf
 
-def train_baseline_model_from_npz(input_npz: str) -> SGDClassifier:
+def train_baseline_model_from_npz(input_npz: str, hyperparameters: Dict[str, Any]) -> SGDClassifier:
     """
     1) Загружает X, Y из .npz
     2) Обучает LogisticRegression (или другую модель).
@@ -295,7 +298,7 @@ def train_baseline_model_from_npz(input_npz: str) -> SGDClassifier:
     Y_all = data["Y"]
     print(f"[INFO] Loaded dataset from {input_npz}, X={X_all.shape}, Y={Y_all.shape}")
 
-    clf = sgd_train_iterative(X_all, Y_all, n_epochs=10, batch_size=2000, n_jobs=-1)
+    clf = sgd_train_iterative(X_all, Y_all, n_epochs=10, batch_size=2000, hyperparameters=hyperparameters)
     clf.fit(X_all, Y_all)
     print(f"[INFO] Model trained (X={X_all.shape}, Y={Y_all.shape})")
     return clf
@@ -375,3 +378,32 @@ def midi_from_prediction(y_pred: List[int], hop_length: int, sr: int, out_midi_p
     pm.instruments.append(instrument)
     pm.write(out_midi_path)
     print(f"[INFO] Saved predicted MIDI to {out_midi_path}")
+
+    ################################ FUNCTIONS FOR API ################################
+    def train_model(request: FitRequest):
+        model = train_baseline_model_from_npz(FEATURES_DIR, request.hyperparameters)
+        joblib.dump(model, request.id)
+        print(f"[INFO] Saved model id {request.id}  to {FEATURES_DIR}")
+
+    def predict_model(file: UploadFile = File(...)):
+        try:
+            loaded_model = joblib.load(MODEL_NAME)
+            print(f"[INFO] {MODEL_NAME} loaded.")
+        except FileNotFoundError:
+            loaded_model = None
+            print(f"[WARN] {MODEL_NAME} not found, please train/save first.")
+
+        if loaded_model is not None:
+            audio, sr_ = librosa.load(file, sr=SR)
+            # 1. Предикт (кадры -> MIDI pitch / -1)
+            y_pred = predict_pitch_sequence(loaded_model, audio, sr_)
+
+            # 2. Создаём MIDI из y_pred
+            out_midi_path = os.path.join(PREDICTIONS_DIR, f"prediction_{file.filename}.mid")
+            midi_from_prediction(
+                y_pred=y_pred,
+                hop_length=HOP_LENGTH,
+                sr=SR,
+                out_midi_path=out_midi_path
+            )
+            print("First 50 frames (MIDI or -1):", y_pred[:50])
