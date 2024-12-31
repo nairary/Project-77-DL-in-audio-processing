@@ -1,0 +1,98 @@
+2024-12-30 23:30:30,079 - ERROR - Failed to fetch EDA results.
+2024-12-30 23:30:30,079 - ERROR - Failed to fetch EDA results.
+2024-12-30 23:30:30,079 - ERROR - Failed to fetch EDA results.
+2024-12-30 23:30:30,079 - ERROR - Failed to fetch EDA results.
+2024-12-30 23:30:30,079 - ERROR - Failed to fetch EDA results.
+2024-12-30 23:30:30,079 - ERROR - Failed to fetch EDA results.
+2024-12-30 23:30:42,734 - ERROR - Failed to fetch model information.
+2024-12-30 23:30:42,734 - ERROR - Failed to fetch model information.
+2024-12-30 23:30:42,734 - ERROR - Failed to fetch model information.
+2024-12-30 23:30:42,734 - ERROR - Failed to fetch model information.
+2024-12-30 23:30:42,734 - ERROR - Failed to fetch model information.
+2024-12-30 23:30:42,734 - ERROR - Failed to fetch model information.
+2024-12-30 23:30:42,734 - ERROR - Failed to fetch model information.
+2024-12-30 23:30:42,734 - ERROR - Failed to fetch model information.
+2024-12-30 23:30:42,734 - ERROR - Failed to fetch model information.
+2024-12-30 23:30:42,734 - ERROR - Failed to fetch model information.
+2024-12-30 23:30:42,734 - ERROR - Failed to fetch model information.
+2024-12-30 23:30:42,734 - ERROR - Failed to fetch model information.
+2024-12-31 02:54:12,494 - INFO - Loading audio file for prediction.
+2024-12-31 02:54:12,494 - INFO - Loading audio file for prediction.
+2024-12-31 02:54:12,494 - INFO - Loading audio file for prediction.
+2024-12-31 02:54:12,494 - INFO - Loading audio file for prediction.
+2024-12-31 02:54:12,494 - INFO - Loading audio file for prediction.
+2024-12-31 02:54:12,494 - INFO - Loading audio file for prediction.
+2024-12-31 02:54:15,139 - INFO - Waveform displayed successfully.
+2024-12-31 02:54:15,139 - INFO - Waveform displayed successfully.
+2024-12-31 02:54:15,139 - INFO - Waveform displayed successfully.
+2024-12-31 02:54:15,139 - INFO - Waveform displayed successfully.
+2024-12-31 02:54:15,139 - INFO - Waveform displayed successfully.
+2024-12-31 02:54:15,139 - INFO - Waveform displayed successfully.
+2024-12-31 02:54:41,996 - INFO - Spectrogram displayed successfully.
+2024-12-31 02:54:41,996 - INFO - Spectrogram displayed successfully.
+2024-12-31 02:54:41,996 - INFO - Spectrogram displayed successfully.
+2024-12-31 02:54:41,996 - INFO - Spectrogram displayed successfully.
+2024-12-31 02:54:41,996 - INFO - Spectrogram displayed successfully.
+2024-12-31 02:54:41,996 - INFO - Spectrogram displayed successfully.
+2024-12-31 02:54:42,001 - INFO - Sending prediction request to server.
+2024-12-31 02:54:42,001 - INFO - Sending prediction request to server.
+2024-12-31 02:54:42,001 - INFO - Sending prediction request to server.
+2024-12-31 02:54:42,001 - INFO - Sending prediction request to server.
+2024-12-31 02:54:42,001 - INFO - Sending prediction request to server.
+2024-12-31 02:54:42,001 - INFO - Sending prediction request to server.
+2024-12-31 02:54:42,099 - ERROR - Error during prediction: Cannot connect to host your-prediction-url.com:80 ssl:default [Name or service not known]
+2024-12-31 02:54:42,099 - ERROR - Error during prediction: Cannot connect to host your-prediction-url.com:80 ssl:default [Name or service not known]
+2024-12-31 02:54:42,099 - ERROR - Error during prediction: Cannot connect to host your-prediction-url.com:80 ssl:default [Name or service not known]
+2024-12-31 02:54:42,099 - ERROR - Error during prediction: Cannot connect to host your-prediction-url.com:80 ssl:default [Name or service not known]
+2024-12-31 02:54:42,099 - ERROR - Error during prediction: Cannot connect to host your-prediction-url.com:80 ssl:default [Name or service not known]
+2024-12-31 02:54:42,099 - ERROR - Error during prediction: Cannot connect to host your-prediction-url.com:80 ssl:default [Name or service not known]
+2024-12-31 03:03:08,085 - INFO - Информация о модели сюда
+2024-12-31 03:03:08,085 - INFO - Информация о модели сюда
+2024-12-31 03:03:08,085 - INFO - Информация о модели сюда
+2024-12-31 03:03:08,085 - INFO - Информация о модели сюда
+2024-12-31 03:03:08,085 - INFO - Информация о модели сюда
+2024-12-31 03:03:08,085 - INFO - Информация о модели сюда
+2024-12-31 03:03:08,085 - INFO - Информация о модели сюда
+2024-12-31 03:03:08,085 - INFO - Информация о модели сюда
+2024-12-31 03:03:08,085 - INFO - Информация о модели сюда
+2024-12-31 03:03:08,085 - INFO - Информация о модели сюда
+2024-12-31 03:03:08,085 - INFO - Информация о модели сюда
+2024-12-31 03:03:08,085 - INFO - Информация о модели сюда
+2024-12-31 03:03:08,094 - ERROR - Ошибка при получении списка моделей Cannot connect to host 127.0.0.1:8000 ssl:default [Connect call failed ('127.0.0.1', 8000)]
+2024-12-31 03:03:08,094 - ERROR - Ошибка при получении списка моделей Cannot connect to host 127.0.0.1:8000 ssl:default [Connect call failed ('127.0.0.1', 8000)]
+2024-12-31 03:03:08,094 - ERROR - Ошибка при получении списка моделей Cannot connect to host 127.0.0.1:8000 ssl:default [Connect call failed ('127.0.0.1', 8000)]
+2024-12-31 03:03:08,094 - ERROR - Ошибка при получении списка моделей Cannot connect to host 127.0.0.1:8000 ssl:default [Connect call failed ('127.0.0.1', 8000)]
+2024-12-31 03:03:08,094 - ERROR - Ошибка при получении списка моделей Cannot connect to host 127.0.0.1:8000 ssl:default [Connect call failed ('127.0.0.1', 8000)]
+2024-12-31 03:03:08,094 - ERROR - Ошибка при получении списка моделей Cannot connect to host 127.0.0.1:8000 ssl:default [Connect call failed ('127.0.0.1', 8000)]
+2024-12-31 03:03:08,094 - ERROR - Ошибка при получении списка моделей Cannot connect to host 127.0.0.1:8000 ssl:default [Connect call failed ('127.0.0.1', 8000)]
+2024-12-31 03:03:08,094 - ERROR - Ошибка при получении списка моделей Cannot connect to host 127.0.0.1:8000 ssl:default [Connect call failed ('127.0.0.1', 8000)]
+2024-12-31 03:03:08,094 - ERROR - Ошибка при получении списка моделей Cannot connect to host 127.0.0.1:8000 ssl:default [Connect call failed ('127.0.0.1', 8000)]
+2024-12-31 03:03:08,094 - ERROR - Ошибка при получении списка моделей Cannot connect to host 127.0.0.1:8000 ssl:default [Connect call failed ('127.0.0.1', 8000)]
+2024-12-31 03:03:08,094 - ERROR - Ошибка при получении списка моделей Cannot connect to host 127.0.0.1:8000 ssl:default [Connect call failed ('127.0.0.1', 8000)]
+2024-12-31 03:03:08,094 - ERROR - Ошибка при получении списка моделей Cannot connect to host 127.0.0.1:8000 ssl:default [Connect call failed ('127.0.0.1', 8000)]
+2024-12-31 03:03:09,459 - INFO - Информация о модели сюда
+2024-12-31 03:03:09,459 - INFO - Информация о модели сюда
+2024-12-31 03:03:09,459 - INFO - Информация о модели сюда
+2024-12-31 03:03:09,459 - INFO - Информация о модели сюда
+2024-12-31 03:03:09,459 - INFO - Информация о модели сюда
+2024-12-31 03:03:09,459 - INFO - Информация о модели сюда
+2024-12-31 03:03:09,459 - INFO - Информация о модели сюда
+2024-12-31 03:03:09,459 - INFO - Информация о модели сюда
+2024-12-31 03:03:09,459 - INFO - Информация о модели сюда
+2024-12-31 03:03:09,459 - INFO - Информация о модели сюда
+2024-12-31 03:03:09,459 - INFO - Информация о модели сюда
+2024-12-31 03:03:09,459 - INFO - Информация о модели сюда
+2024-12-31 03:03:09,459 - INFO - Информация о модели сюда
+2024-12-31 03:03:09,469 - ERROR - Ошибка при получении списка моделей Cannot connect to host 127.0.0.1:8000 ssl:default [Connect call failed ('127.0.0.1', 8000)]
+2024-12-31 03:03:09,469 - ERROR - Ошибка при получении списка моделей Cannot connect to host 127.0.0.1:8000 ssl:default [Connect call failed ('127.0.0.1', 8000)]
+2024-12-31 03:03:09,469 - ERROR - Ошибка при получении списка моделей Cannot connect to host 127.0.0.1:8000 ssl:default [Connect call failed ('127.0.0.1', 8000)]
+2024-12-31 03:03:09,469 - ERROR - Ошибка при получении списка моделей Cannot connect to host 127.0.0.1:8000 ssl:default [Connect call failed ('127.0.0.1', 8000)]
+2024-12-31 03:03:09,469 - ERROR - Ошибка при получении списка моделей Cannot connect to host 127.0.0.1:8000 ssl:default [Connect call failed ('127.0.0.1', 8000)]
+2024-12-31 03:03:09,469 - ERROR - Ошибка при получении списка моделей Cannot connect to host 127.0.0.1:8000 ssl:default [Connect call failed ('127.0.0.1', 8000)]
+2024-12-31 03:03:09,469 - ERROR - Ошибка при получении списка моделей Cannot connect to host 127.0.0.1:8000 ssl:default [Connect call failed ('127.0.0.1', 8000)]
+2024-12-31 03:03:09,469 - ERROR - Ошибка при получении списка моделей Cannot connect to host 127.0.0.1:8000 ssl:default [Connect call failed ('127.0.0.1', 8000)]
+2024-12-31 03:03:09,469 - ERROR - Ошибка при получении списка моделей Cannot connect to host 127.0.0.1:8000 ssl:default [Connect call failed ('127.0.0.1', 8000)]
+2024-12-31 03:03:09,469 - ERROR - Ошибка при получении списка моделей Cannot connect to host 127.0.0.1:8000 ssl:default [Connect call failed ('127.0.0.1', 8000)]
+2024-12-31 03:03:09,469 - ERROR - Ошибка при получении списка моделей Cannot connect to host 127.0.0.1:8000 ssl:default [Connect call failed ('127.0.0.1', 8000)]
+2024-12-31 03:03:09,469 - ERROR - Ошибка при получении списка моделей Cannot connect to host 127.0.0.1:8000 ssl:default [Connect call failed ('127.0.0.1', 8000)]
+2024-12-31 03:03:09,469 - ERROR - Ошибка при получении списка моделей Cannot connect to host 127.0.0.1:8000 ssl:default [Connect call failed ('127.0.0.1', 8000)]
