@@ -137,7 +137,7 @@ async def get_model_list():
     """
     Возвращает список всех MODEL_NAME из директории MODEL_DIR.
     """
-    if not os.path.exists(MODELS_DIR):
+    if not os.path.exists(os.path.abspath(MODELS_DIR)):
         raise HTTPException(
             status_code=404,
             detail=f"Model directory '{MODELS_DIR}' does not exist."
@@ -145,7 +145,8 @@ async def get_model_list():
     
     try:
         model_names = [
-            f for f in os.listdir(MODELS_DIR) if os.path.isfile(os.path.join(MODELS_DIR, f))
+            f for f in os.listdir(os.path.abspath(MODELS_DIR)) 
+            if os.path.isfile(os.path.abspath(os.path.join(MODELS_DIR, f)))
         ]
     except Exception as e:
         raise HTTPException(

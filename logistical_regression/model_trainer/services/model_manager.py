@@ -403,7 +403,6 @@ async def run_extract_and_save_data(mp3_vocals_root, lmd_aligned_vocals_root, ma
         )
 
 async def fit(request: FitRequest):
-    await asyncio.sleep(60)
     model = train_baseline_model_from_npz(FEATURES_DIR, request.hyperparameters)
     MODEL_NAME = request.id
     joblib.dump(model, os.path.join(MODELS_DIR, str(MODEL_NAME) + ".pkl"))

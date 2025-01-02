@@ -12,3 +12,4 @@ services:
       - "8000:8000"
     volumes:
       - ./logistical_regression:/logistical_regression
+      - ./Dataset:/Dataset
