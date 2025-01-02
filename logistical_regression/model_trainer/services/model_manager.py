@@ -133,10 +133,16 @@ def extract_and_save_data(mp3_vocals_root, lmd_aligned_vocals_root, match_scores
        этот этап при каждом обучении.
     """
 
+    global MP3_VOCALS_DIR
+    global MIDI_VOCALS_DIR
+    global MATCH_SCORES_PATH
+    global FEATURES_DIR
+
     MP3_VOCALS_DIR = mp3_vocals_root
     MIDI_VOCALS_DIR = lmd_aligned_vocals_root
     MATCH_SCORES_PATH = match_scores_json
-    FEATURES_DIR = output_npz
+    FEATURES_DIR = os.path.join(output_npz, ".npz")
+    
 
     with open(MATCH_SCORES_PATH, 'r', encoding='utf-8') as f:
         data = json.load(f)
@@ -387,7 +393,7 @@ def fit(request: FitRequest):
     joblib.dump(model, os.path.join(MODELS_DIR, str(MODEL_NAME)))
     print(f"[INFO] Saved model id {request.id}  to {FEATURES_DIR}")
 
-def predict_model(file: UploadFile = File(...)):
+def predict_model(MODEL_NAME, file: UploadFile = File(...)):
     try:
         loaded_model = joblib.load(os.path.join(MODELS_DIR, MODEL_NAME))
         print(f"[INFO] {MODEL_NAME} loaded.")
@@ -409,3 +415,4 @@ def predict_model(file: UploadFile = File(...)):
             out_midi_path=out_midi_path
         )
         print("First 50 frames (MIDI or -1):", y_pred[:50])
+        return(y_pred)

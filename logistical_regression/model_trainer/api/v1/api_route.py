@@ -16,8 +16,8 @@ from services.process_manager import (
 )
 from serializers.serializers import (
     FitRequest,
-    CollisionResolver,
-    MessageResponse,
+    ModelNameRequest,
+    ModelListResponse,
     PredictionResponse,
     FitResponse,
 )
@@ -114,40 +114,73 @@ async def train_model(request: FitRequest = Body(...)):
         raise HTTPException(status_code=400, detail=str(e))
     return responses
 
+@router.get("/get_model_list", response_model=ModelListResponse, status_code=HTTPStatus.OK)
+async def get_model_list():
+    """
+    Возвращает список всех MODEL_NAME из директории MODEL_DIR.
+    """
+    if not os.path.exists(MODELS_DIR):
+        raise HTTPException(
+            status_code=404,
+            detail=f"Model directory '{MODELS_DIR}' does not exist."
+        )
+    
+    try:
+        model_names = [
+            f for f in os.listdir(MODELS_DIR) if os.path.isfile(os.path.join(MODELS_DIR, f))
+        ]
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error accessing model directory: {str(e)}"
+        )
+    
+    if not model_names:
+        raise HTTPException(
+            status_code=404,
+            detail=f"No models found in directory '{MODELS_DIR}'."
+        )
+
+    return ModelListResponse(message=model_names)
+
+@router.post("/set_model")
+async def set_model(request: ModelNameRequest):
+    """
+    Назначает указанное имя модели в MODEL_NAME.
+    """
+    global MODEL_NAME
+    if not request.model_name.strip():
+        raise HTTPException(
+            status_code=400,
+            detail="Model name cannot be empty or whitespace."
+        )
+    
+    MODEL_NAME = request.model_name.strip()
+    return {"message": "Model name set successfully", "model_name": MODEL_NAME}
+
+@router.post("/get_selected_model")
+async def get_selected_model():
+    """
+    Назначает указанное имя модели в MODEL_NAME.
+    """
+    global MODEL_NAME
+    if not MODEL_NAME:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Model {MODEL_NAME} doesn't exist."
+        )
+    
+    return {"message": "Successfully got model name", "model_name": MODEL_NAME}
+
 @router.post("/predict", response_model=PredictionResponse, status_code=HTTPStatus.OK)
 async def predict(file: UploadFile = File(...)):
-
-    if not MODEL_NAME or MODEL_NAME.strip() == "":
-        raise HTTPException(
-            status_code=400,
-            detail="Model is not set. Please set model first."
-        )
-    
-    if not os.path.exists(os.path.join(MODELS_DIR, MODEL_NAME)):
-        raise HTTPException(
-            status_code=400,
-            detail=f"Model path '{os.path.join(MODELS_DIR, MODEL_NAME)}' does not exist. Please set valid model first."
-        )
-    
-    pkl_files = [f for f in os.listdir(os.path.join(MODELS_DIR, MODEL_NAME)) if f.endswith('.pkl')]
-    if not pkl_files:
-        raise HTTPException(
-            status_code=400,
-            detail=f"No .pkl files found in model path '{os.path.join(MODELS_DIR, MODEL_NAME)}'. Please set valid model first."
-        )
-
+    global MODEL_NAME
     process_id = "predict"
     try:
-        output = io.StringIO()
-        sys.stdout = output
         await start_process(process_id, "predict")
-        predictions = predict_model(file)
+        predictions = predict_model(MODEL_NAME, file)
         await end_process(process_id)
-        sys.stdout = sys.__stdout__
-        logs = output.getvalue()
-
-        return PredictionResponse(message=logs)
+        return {"message": "Successfully made prediction", "midi_notes": predictions}
     except Exception as e:
-        sys.stdout = sys.__stdout__
         await end_process(process_id)
         raise HTTPException(status_code=400, detail=str(e))

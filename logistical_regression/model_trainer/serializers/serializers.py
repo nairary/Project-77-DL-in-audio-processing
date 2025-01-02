@@ -17,21 +17,21 @@ class FitRequest(BaseModel):
     id: int
     hyperparameters: Hyperparameters
 
-class GetStatusResponse(BaseModel):
-    status: str
-    models: List[str]
-
 class MessageResponse(BaseModel):
     message: str
 
 class PredictionResponse(BaseModel):
-    predictions: List[float]
+    message: str
+    midi_notes: List[int] 
 
 class FitResponse(BaseModel):
     message: str
 
 class ModelListResponse(BaseModel):
-    models: List[Dict[str, str]]
+    message: List[str]
 
 class CollisionResolver(BaseModel):
     mode: Literal["min", "max"]
+
+class ModelNameRequest(BaseModel):
+    model_name: str

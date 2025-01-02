@@ -7,7 +7,7 @@ MATCH_SCORES_PATH = None
 
 # train_model
 MODELS_DIR = os.path.join("logistical_regression", "data", "models")
-PREDICTIONS_DIR = None
+PREDICTIONS_DIR = os.path.join("logistical_regression", "data", "predictions")
 FEATURES_DIR = UPLOAD_DIR = os.path.join("logistical_regression", "data", "features")
 
 # predict_model
