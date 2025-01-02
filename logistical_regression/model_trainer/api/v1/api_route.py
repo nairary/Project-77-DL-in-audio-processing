@@ -1,4 +1,4 @@
-import io
+import asyncio
 import sys, os
 import json
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Body
@@ -6,13 +6,14 @@ from http import HTTPStatus
 from typing import List, Dict, Optional
 
 from services.model_manager import (
-    extract_and_save_data,
+    run_extract_and_save_data,
     fit,
-    predict_model,
+    predict_model
 )
 from services.process_manager import (
     start_process,
     end_process,
+    get_active_processes
 )
 from serializers.serializers import (
     FitRequest,
@@ -20,9 +21,10 @@ from serializers.serializers import (
     ModelListResponse,
     PredictionResponse,
     FitResponse,
+    GetStatusResponse
 )
 
-from settings.config import (MP3_VOCALS_DIR, MIDI_VOCALS_DIR, MATCH_SCORES_PATH, MODELS_DIR, FEATURES_DIR, PREDICTIONS_DIR, MODEL_NAME)
+from settings.config import (MODELS_DIR, FEATURES_DIR, MODEL_NAME)
 
 router = APIRouter()
 
@@ -73,8 +75,15 @@ async def extract_features(
 
         if not all([mp3_vocals_root, lmd_aligned_vocals_root, match_scores_json, output_npz]):
             raise HTTPException(status_code=400, detail="Не все пути указаны в JSON")
-
-        extract_and_save_data(mp3_vocals_root, lmd_aligned_vocals_root, match_scores_json, output_npz)
+        
+        process_id = len(get_active_processes())+1
+        try:
+            await start_process(process_id, "features extraction")
+            await run_extract_and_save_data(mp3_vocals_root, lmd_aligned_vocals_root, match_scores_json, output_npz)
+            await end_process(process_id)
+        except Exception as e:
+            await end_process(process_id)
+            raise HTTPException(status_code=400, detail=str(e))
         return {"message": "Фичи успешно извлечены", "paths": payload_dict}
 
     else:
@@ -183,4 +192,16 @@ async def predict(file: UploadFile = File(...)):
         return {"message": "Successfully made prediction", "midi_notes": predictions}
     except Exception as e:
         await end_process(process_id)
+        raise HTTPException(status_code=400, detail=str(e))
+    
+@router.get("/get_status", response_model=GetStatusResponse)
+async def get_status():
+    try:
+        active_processes = get_active_processes()
+        if not active_processes:
+            return {"status": "No active models", "models": []}
+
+        models = list(active_processes.keys())
+        return {"status": "Active models", "models": models}
+    except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))

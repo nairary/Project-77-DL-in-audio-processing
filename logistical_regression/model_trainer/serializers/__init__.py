@@ -5,7 +5,8 @@ from .serializers import (
     PredictionResponse,
     FitResponse,
     ModelListResponse,
-    ModelNameRequest
+    ModelNameRequest,
+    GetStatusResponse
 )
 
 __all__ = [
@@ -15,5 +16,6 @@ __all__ = [
     "PredictionResponse",
     "FitResponse",
     "ModelListResponse",
-    "ModelNameRequest"
+    "ModelNameRequest",
+    "GetStatusResponse"
 ]

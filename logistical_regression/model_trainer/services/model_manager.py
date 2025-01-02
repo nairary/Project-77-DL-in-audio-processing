@@ -1,3 +1,5 @@
+import asyncio
+from concurrent.futures import ProcessPoolExecutor
 import os
 import json
 import math
@@ -387,6 +389,18 @@ def midi_from_prediction(y_pred: List[int], hop_length: int, sr: int, out_midi_p
     print(f"[INFO] Saved predicted MIDI to {out_midi_path}")
 
 ################################ FUNCTIONS FOR API ################################
+async def run_extract_and_save_data(mp3_vocals_root, lmd_aligned_vocals_root, match_scores_json, output_npz):
+    loop = asyncio.get_running_loop()
+    with ProcessPoolExecutor() as executor:
+        await loop.run_in_executor(
+            executor,
+            extract_and_save_data,
+            mp3_vocals_root,
+            lmd_aligned_vocals_root,
+            match_scores_json,
+            output_npz
+        )
+
 def fit(request: FitRequest):
     model = train_baseline_model_from_npz(FEATURES_DIR, request.hyperparameters)
     MODEL_NAME = request.id

@@ -35,3 +35,7 @@ class CollisionResolver(BaseModel):
 
 class ModelNameRequest(BaseModel):
     model_name: str
+
+class GetStatusResponse(BaseModel):
+    status: str
+    models: List[str]
