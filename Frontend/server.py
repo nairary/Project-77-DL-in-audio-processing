@@ -74,7 +74,7 @@ async def process_dataset(payload, files=None):
         async with aiohttp.ClientSession() as session:
             if files:
                 logger.info("Отправка датасета")
-                async with session.post(EXTRACT_FEATURES_URL, data=files) as response:
+                async with session.post(UPLOAD_DATA_URL, data=files) as response:
                     if response.status == 200:
                         logger.info("Отправка датасета завершена")
                         return True, None
@@ -84,7 +84,7 @@ async def process_dataset(payload, files=None):
                         return False, error_message
             else:
                 logger.info("Перенаправление для путей в которых хранятся аудио-фрагменты")
-                async with session.post(EXTRACT_FEATURES_URL, json=payload) as response:
+                async with session.post(UPLOAD_DATA_URL, json=payload) as response:
                     if response.status == 200:
                         logger.info("Успешно закончил с отправкой датасета")
                         return True, None

@@ -14,6 +14,7 @@ class FitRequest(BaseModel):
             "perceptron", "squared_error", "huber", "epsilon_insensitive", "squared_epsilon_insensitive"
         ]
     ] = None
+    optional: Optional[Dict[str, Any]] = None
 
 class GetStatusResponse(BaseModel):
     status: str

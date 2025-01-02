@@ -123,7 +123,7 @@ def generate_labels_from_vocal_midi(vocals_wav: str, midi_path: str, collision_r
 
     return labels
 
-def extract_and_save_data(collision_resolver='min') -> None:
+def extract_and_save_data(mp3_vocals_root, lmd_aligned_vocals_root, match_scores_json, output_npz, collision_resolver='min') -> None:
     """
     1) Для каждого MSD ID ищет vocals.wav
     2) Находит MIDI (из lmd_aligned_vocals по best_md5),
@@ -134,12 +134,13 @@ def extract_and_save_data(collision_resolver='min') -> None:
     5) Сохраняет X, Y в .npz (или .pkl), чтобы не делать
        этот этап при каждом обучении.
     """
-    mp3_vocals_root= MP3_VOCALS_DIR,
-    lmd_aligned_vocals_root = MIDI_VOCALS_DIR,
-    match_scores_json = MATCH_SCORES_PATH,
-    output_npz=f"{FEATURES_DIR}/dataset.npz",
 
-    with open(match_scores_json, 'r', encoding='utf-8') as f:
+    MP3_VOCALS_DIR = mp3_vocals_root
+    MIDI_VOCALS_DIR = lmd_aligned_vocals_root
+    MATCH_SCORES_PATH = match_scores_json
+    FEATURES_DIR = output_npz
+
+    with open(MATCH_SCORES_PATH, 'r', encoding='utf-8') as f:
         data = json.load(f)
 
     # Сопоставляем MSD ID → best_md5
@@ -156,14 +157,14 @@ def extract_and_save_data(collision_resolver='min') -> None:
     # Если msd_ids=None, смотрим все TR* папки
     if msd_ids is None:
         msd_ids = []
-        for d in os.listdir(mp3_vocals_root):
-            if d.startswith("TR") and os.path.isdir(os.path.join(mp3_vocals_root, d)):
+        for d in os.listdir(MP3_VOCALS_DIR):
+            if d.startswith("TR") and os.path.isdir(os.path.join(MP3_VOCALS_DIR, d)):
                 msd_ids.append(d)
 
     X_all, Y_all = [], []
 
     for msd_id in msd_ids:
-        vocals_dir = os.path.join(mp3_vocals_root, msd_id)
+        vocals_dir = os.path.join(MP3_VOCALS_DIR, msd_id)
         vocals_wav = os.path.join(vocals_dir, "vocals.wav")
         if not os.path.isfile(vocals_wav):
             print(f"[SKIP] No vocals.wav for {msd_id}")
@@ -176,7 +177,7 @@ def extract_and_save_data(collision_resolver='min') -> None:
 
         sub1, sub2, sub3 = msd_id[2], msd_id[3], msd_id[4]
         midi_path = os.path.join(
-            lmd_aligned_vocals_root,
+            MIDI_VOCALS_DIR,
             sub1, sub2, sub3,
             msd_id,
             best_md5 + ".mid"
@@ -211,8 +212,8 @@ def extract_and_save_data(collision_resolver='min') -> None:
     X_all = np.concatenate(X_all, axis=0)
     Y_all = np.concatenate(Y_all, axis=0)
 
-    print(f"[INFO] Saving dataset: X={X_all.shape}, Y={Y_all.shape} to {output_npz}")
-    np.savez(output_npz, X=X_all, Y=Y_all, allow_pickle=False)
+    print(f"[INFO] Saving dataset: X={X_all.shape}, Y={Y_all.shape} to {FEATURES_DIR}")
+    np.savez(FEATURES_DIR, X=X_all, Y=Y_all, allow_pickle=False)
     print("[INFO] Done saving dataset.")
 
 ################################ FIT ################################
