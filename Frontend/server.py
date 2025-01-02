@@ -9,6 +9,7 @@ import librosa.display
 import asyncio
 import aiohttp
 import numpy as np
+import os
 
 # Конфигурация логгирования
 logger = logging.getLogger("StreamlitService")
@@ -19,11 +20,11 @@ handler.setFormatter(formatter)
 logger.addHandler(handler)
 
 # API endpoints
-UPLOAD_DATA_URL = "http://127.0.0.1:8000/upload_data"
-TRAIN_MODEL_URL = "http://127.0.0.1:8000/train_model"
-MODEL_INFO_URL = "http://127.0.0.1:8000/model_info"
-EXTRACT_FEATURES_URL = "http://127.0.0.1:8000/extract_features"
-PREDICT_MODEL_URL = "http://127.0.0.1:8000/predict"  
+UPLOAD_DATA_URL = "http://0.0.0.0:8000/api/v1/models/upload_data"
+TRAIN_MODEL_URL = "http://0.0.0.0:8000/api/v1/models/train_model"
+MODEL_INFO_URL = "http://0.0.0.0:8000/api/v1/models/get_model_list"
+PREDICT_MODEL_URL = "http://0.0.0.0:8000/api/v1/models/predict"  
+SELECT_MODEL_URL = "http://0.0.0.0:8000/api/v1/models/set_model"
 
 # Асинхронная функция для обработки аудиофайла
 async def run_prediction_and_process(uploaded_audio):
@@ -50,12 +51,18 @@ async def run_prediction_and_process(uploaded_audio):
         plt.title("Spectrogram")
         st.pyplot(plt)
         logger.info("Spectrogram displayed successfully.")
-
+        print(type(uploaded_audio))
         # Server request
         async with aiohttp.ClientSession() as session:
             logger.info("Запрос предсказания для данного аудио")
-            files = {"file": uploaded_audio.getvalue()}
-            async with session.post(PREDICT_MODEL_URL, data=files) as response:
+            form_data = aiohttp.FormData()
+            form_data.add_field(
+                "file",
+                uploaded_audio,
+                filename=uploaded_audio.name,
+                content_type="audio/wav"
+            )
+            async with session.post(PREDICT_MODEL_URL, data=form_data) as response:
                 if response.status == 200:
                     prediction_result = await response.json()
                     st.success("Предсказание получено")
@@ -69,31 +76,51 @@ async def run_prediction_and_process(uploaded_audio):
         logger.error(f"Ошибка во время предикта {str(e)}")
         st.error(f"Произошла ошибка: {str(e)}")
 
-async def process_dataset(payload, files=None):
+async def process_dataset(payload=None, file_path=None):
+    """
+    Если передаём file_path – значит отправляем файл (один).
+    payload может быть словарём или строкой (JSON).
+    """
     try:
         async with aiohttp.ClientSession() as session:
-            if files:
-                logger.info("Отправка датасета")
-                async with session.post(UPLOAD_DATA_URL, data=files) as response:
-                    if response.status == 200:
-                        logger.info("Отправка датасета завершена")
-                        return True, None
-                    else:
-                        error_message = await response.text()
-                        logger.error(f"Отправка датасета дропнулась {error_message}")
-                        return False, error_message
-            else:
-                logger.info("Перенаправление для путей в которых хранятся аудио-фрагменты")
-                async with session.post(UPLOAD_DATA_URL, json=payload) as response:
-                    if response.status == 200:
-                        logger.info("Успешно закончил с отправкой датасета")
-                        return True, None
-                    else:
-                        error_message = await response.text()
-                        logger.error(f"Не смог закончить с отправкой датасета {error_message}")
-                        return False, error_message
+            # Формируем multipart/form-data
+            form_data = aiohttp.FormData()
+
+            # Если есть файл, добавляем
+            if file_path['file'] is not None:
+                logger.info("Отправка датасета с файлом")
+                form_data.add_field(
+                    name="file",
+                    value=files["file"],
+                    filename="uploaded_file.npz",
+                    content_type="application/octet-stream",
+                )
+
+            # Если есть payload, сериализуем в JSON (если это dict/список)
+            if payload is not None:
+                # Если payload у нас не строка, делаем json.dumps
+                if not isinstance(payload, str):
+                    payload = json.dumps(payload, ensure_ascii=False)
+
+                # Добавляем в form_data
+                form_data.add_field(
+                    name='payload',
+                    value=payload
+                )
+
+            # Делаем POST-запрос
+            async with session.post(UPLOAD_DATA_URL, data=form_data) as response:
+                # Проверяем статус
+                if response.status == 200:
+                    logger.info("Отправка завершена успешно")
+                    return True, None
+                else:
+                    error_message = await response.text()
+                    logger.error(f"Ошибка при отправке: {error_message}")
+                    return False, error_message
+
     except Exception as e:
-        logger.error(f"Не смог закончить с отправкой датасета{str(e)}")
+        logger.error(f"Ошибка при отправке: {str(e)}")
         return False, str(e)
 
 async def train_model(payload):
@@ -144,6 +171,24 @@ async def fetch_model_metrics(selected_model):
     except Exception as e:
         logger.error(f"Error retrieving metrics: {str(e)}")
         return None, str(e)
+
+async def set_model(selected_model):
+    try:
+        payload = {"model_name": selected_model}
+        async with aiohttp.ClientSession() as session:
+            logger.info(f"Выбор модели: {selected_model}")
+            async with session.post(f"{SELECT_MODEL_URL}", json=payload) as response:
+                if response.status == 200:
+                    logger.info(f"Выбрана: {selected_model} модель")
+                    return await response.json(), None
+                else:
+                    error_message = await response.text()
+                    logger.error(f"не получилось выбрать модель {error_message}")
+                    return None, error_message
+    except Exception as e:
+        logger.error(f"Ошибка при выборе модели: {str(e)}")
+        return None, str(e)
+
 
 # Инициализация состояния
 if "page" not in st.session_state:
@@ -217,7 +262,7 @@ elif st.session_state.page == "Обучение модели":
 
         success, error = asyncio.run(train_model(payload))
         if success:
-            st.success("Модель успешно обучена!")
+            st.success(f"Модель успешно обучена!, ответ сервера: {success}")
         else:
             st.error(f"Ошибка обучения модели: {error}")
 
@@ -227,7 +272,7 @@ elif st.session_state.page == "Информация о модели":
     if error:
         st.error(f"Ошибка при получении списка моделей: {error}")
     elif models:
-        selected_model = st.selectbox("Выберите модель", options=models.get("models", []))
+        selected_model = st.selectbox("Выберите модель", options=models.get("message", []))
         if selected_model:
             metrics, error = asyncio.run(fetch_model_metrics(selected_model))
             if error:
@@ -249,6 +294,19 @@ elif st.session_state.page == "Информация о модели":
 elif st.session_state.page == "Использование модели":
     st.header("Использование модели")
     uploaded_audio = st.file_uploader("Загрузка аудио", type=["wav"])
+    st.header('Выберите модель из списка, которую хотите использовать')
+    models, error = asyncio.run(fetch_model_info())
+    if error:
+        st.error(f"Ошибка при получении списка моделей: {error}")
+    elif models:
+        selected_model = st.selectbox("Выберите модель", options=models.get("message", []))
+    models, error = asyncio.run(set_model(selected_model=selected_model))
+    if error:
+        st.error(f'ошибка выора модели: {error}')
+    else:
+        st.success('Модель успешно выбрана')
     btn_predict = st.button("Начать обработку")
     if uploaded_audio and btn_predict:
         asyncio.run(run_prediction_and_process(uploaded_audio))
+    elif not uploaded_audio:
+        st.error('Не загрузили аудио')
