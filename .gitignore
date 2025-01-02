@@ -27,3 +27,4 @@ logistical_regression.zip
 
 __pycache__/
 *.cpython-311.pyc
+*.pyc

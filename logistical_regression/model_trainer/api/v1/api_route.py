@@ -197,7 +197,7 @@ async def predict(request: Request, file: UploadFile = File(...)):
         await start_process(process_id, "predict")
         predictions = predict_model(model_name, file)
         await end_process(process_id)
-        return {"message": "Successfully made prediction", "midi_notes": predictions}
+        return PredictionResponse(message="Successfully made prediction", midi_notes=predictions)
     except Exception as e:
         await end_process(process_id)
         raise HTTPException(status_code=400, detail=str(e))
