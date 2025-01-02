@@ -24,3 +24,6 @@ logistical_regression/misc/Everlong_vocals.wav
 logistical_regression/data/feats/dataset_full.npz
 .../data/models/model_full_v2.2.pkl
 logistical_regression.zip
+
+__pycache__/
+*.cpython-311.pyc
