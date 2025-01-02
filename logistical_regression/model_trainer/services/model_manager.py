@@ -16,13 +16,13 @@ from serializers.serializers import (FitRequest)
 # константы
 SR = 22050
 HOP_LENGTH = 512
-CONTEXT_SIZE = 2
+CONTEXT_SIZE = 10
 N_MELS = 80
 SILENCE_PITCH = -1
 
 CURRENT_DIRECTORY = os.getcwd()
 
-MODEL_NAME = "model_full_v2.1.pkl"
+MODEL_NAME = "model_full_v2.2.pkl"
 
 ################################ EXTRACT FEATURES ################################
 
@@ -387,14 +387,14 @@ def train_model(request: FitRequest):
 
 def predict_model(file: UploadFile = File(...)):
     try:
-        loaded_model = joblib.load(MODEL_NAME)
+        loaded_model = joblib.load(os.path.join(MODELS_DIR, MODEL_NAME))
         print(f"[INFO] {MODEL_NAME} loaded.")
     except FileNotFoundError:
         loaded_model = None
         print(f"[WARN] {MODEL_NAME} not found, please train/save first.")
 
     if loaded_model is not None:
-        audio, sr_ = librosa.load(file, sr=SR)
+        audio, sr_ = librosa.load(file.file, sr=SR)
         # 1. Предикт (кадры -> MIDI pitch / -1)
         y_pred = predict_pitch_sequence(loaded_model, audio, sr_)
 

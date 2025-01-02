@@ -1,3 +1,5 @@
+import io
+import sys
 from fastapi import APIRouter, HTTPException, UploadFile, File
 from http import HTTPStatus
 from typing import List, Dict
@@ -6,7 +8,6 @@ from services.model_manager import (
     extract_and_save_data,
     train_model,
     predict_model,
-    # get_models
 )
 from services.process_manager import (
     start_process,
@@ -18,7 +19,6 @@ from serializers.serializers import (
     MessageResponse,
     PredictionResponse,
     FitResponse,
-    # ModelListResponse
 )
 
 router = APIRouter()
@@ -53,18 +53,16 @@ async def fit(request: FitRequest):
 async def predict(file: UploadFile = File(...)):
     process_id = "predict"
     try:
+        output = io.StringIO()
+        sys.stdout = output
         await start_process(process_id, "predict")
         predictions = predict_model(file)
         await end_process(process_id)
-        return PredictionResponse(predictions=predictions)
+        sys.stdout = sys.__stdout__
+        logs = output.getvalue()
+
+        return PredictionResponse(message=logs)
     except Exception as e:
+        sys.stdout = sys.__stdout__
         await end_process(process_id)
         raise HTTPException(status_code=400, detail=str(e))
-
-# @router.get("/list_models", response_model=ModelListResponse, status_code=HTTPStatus.OK)
-# async def list_models():
-#     try:
-#         models = get_models()
-#         return ModelListResponse(models=models)
-#     except Exception as e:
-#         raise HTTPException(status_code=400, detail=str(e))
