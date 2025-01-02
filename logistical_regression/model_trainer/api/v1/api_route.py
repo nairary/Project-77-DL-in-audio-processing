@@ -117,9 +117,16 @@ async def train_model(request: FitRequest = Body(...)):
     process_id = f"fit_{request.id}"
     try:
         await start_process(process_id, "fit")
-        fit(request)
+        await asyncio.wait_for(
+            fit(request),
+            timeout=10
+            )
         responses.append(FitResponse(message=f"Model {request.id} saved successfully"))
         await end_process(process_id)
+    except asyncio.TimeoutError:
+        await end_process(process_id)
+        responses.append(FitResponse(message=f"Model {request.id} trained too long (> 10 seconds)"))
+        return responses
     except Exception as e:
         await end_process(process_id)
         raise HTTPException(status_code=400, detail=str(e))
