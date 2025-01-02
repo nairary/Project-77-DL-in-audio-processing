@@ -10,7 +10,7 @@ from fastapi import UploadFile, File
 from typing import List, Dict, Any
 from sklearn.linear_model import SGDClassifier
 
-from settings.config import (MP3_VOCALS_DIR, MIDI_VOCALS_DIR, MATCH_SCORES_PATH, MODELS_DIR, FEATURES_DIR, PREDICTIONS_DIR)
+from settings.config import (MODELS_DIR, FEATURES_DIR, PREDICTIONS_DIR, MODEL_NAME)
 from serializers.serializers import (FitRequest)
 
 # константы
@@ -21,8 +21,6 @@ N_MELS = 80
 SILENCE_PITCH = -1
 
 CURRENT_DIRECTORY = os.getcwd()
-
-MODEL_NAME = "model_full_v2.2.pkl"
 
 ################################ EXTRACT FEATURES ################################
 
@@ -381,7 +379,7 @@ def midi_from_prediction(y_pred: List[int], hop_length: int, sr: int, out_midi_p
     print(f"[INFO] Saved predicted MIDI to {out_midi_path}")
 
 ################################ FUNCTIONS FOR API ################################
-def train_model(request: FitRequest):
+def fit(request: FitRequest):
     model = train_baseline_model_from_npz(FEATURES_DIR, request.hyperparameters)
     joblib.dump(model, request.id)
     print(f"[INFO] Saved model id {request.id}  to {FEATURES_DIR}")
