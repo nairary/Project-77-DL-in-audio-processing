@@ -1,7 +1,7 @@
 import io
 import sys, os
 import json
-from fastapi import APIRouter, HTTPException, UploadFile, File, Form
+from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Body
 from http import HTTPStatus
 from typing import List, Dict, Optional
 
@@ -81,7 +81,7 @@ async def extract_features(
         raise HTTPException(status_code=400, detail="Необходимо предоставить файл .npz или JSON с путями")
 
 @router.post("/train_model", response_model=List[FitResponse], status_code=HTTPStatus.OK)
-async def train_model(request: FitRequest):
+async def train_model(request: FitRequest = Body(...)):
     responses = []
 
     if not FEATURES_DIR or FEATURES_DIR.strip() == "":
@@ -103,10 +103,10 @@ async def train_model(request: FitRequest):
             detail=f"No .npz files found in features folder '{FEATURES_DIR}'. Please upload data first."
         )
 
-    process_id = f"fit_{request.hyperparametes}"
+    process_id = f"fit_{request.id}"
     try:
         await start_process(process_id, "fit")
-        fit(request.hyperparametes)
+        fit(request)
         responses.append(FitResponse(message=f"Model {request.id} saved successfully"))
         await end_process(process_id)
     except Exception as e:

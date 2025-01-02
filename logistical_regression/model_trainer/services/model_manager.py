@@ -290,12 +290,16 @@ def train_baseline_model_from_npz(input_npz: str, hyperparameters: Dict[str, Any
     2) Обучает LogisticRegression (или другую модель).
     3) Возвращает модель.
     """
-    data = np.load(input_npz)
+
+    npz_files = [f for f in os.listdir(input_npz) if f.endswith('.npz')]
+    first_npz_file = os.path.join(input_npz, npz_files[0])
+
+    data = np.load(first_npz_file)
     X_all = data["X"]
     Y_all = data["Y"]
     print(f"[INFO] Loaded dataset from {input_npz}, X={X_all.shape}, Y={Y_all.shape}")
 
-    clf = sgd_train_iterative(X_all, Y_all, n_epochs=10, batch_size=2000, hyperparameters=hyperparameters)
+    clf = sgd_train_iterative(X_all, Y_all, n_epochs=10, batch_size=2000, hyperparameters=hyperparameters.dict())
     clf.fit(X_all, Y_all)
     print(f"[INFO] Model trained (X={X_all.shape}, Y={Y_all.shape})")
     return clf
@@ -379,7 +383,8 @@ def midi_from_prediction(y_pred: List[int], hop_length: int, sr: int, out_midi_p
 ################################ FUNCTIONS FOR API ################################
 def fit(request: FitRequest):
     model = train_baseline_model_from_npz(FEATURES_DIR, request.hyperparameters)
-    joblib.dump(model, request.id)
+    MODEL_NAME = request.id
+    joblib.dump(model, os.path.join(MODELS_DIR, str(MODEL_NAME)))
     print(f"[INFO] Saved model id {request.id}  to {FEATURES_DIR}")
 
 def predict_model(file: UploadFile = File(...)):

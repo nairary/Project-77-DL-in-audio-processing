@@ -6,7 +6,7 @@ MIDI_VOCALS_DIR = None
 MATCH_SCORES_PATH = None
 
 # train_model
-MODELS_DIR = None
+MODELS_DIR = os.path.join("logistical_regression", "data", "models")
 PREDICTIONS_DIR = None
 FEATURES_DIR = UPLOAD_DIR = os.path.join("logistical_regression", "data", "features")
 
