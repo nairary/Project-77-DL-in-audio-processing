@@ -38,4 +38,4 @@ class ModelNameRequest(BaseModel):
 
 class GetStatusResponse(BaseModel):
     status: str
-    models: List[str]
+    processes: List[str]

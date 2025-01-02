@@ -12,7 +12,7 @@ from fastapi import UploadFile, File
 from typing import List, Dict, Any
 from sklearn.linear_model import SGDClassifier
 
-from settings.config import (MODELS_DIR, FEATURES_DIR, PREDICTIONS_DIR, MODEL_NAME)
+from settings.config import (MODELS_DIR, FEATURES_DIR, PREDICTIONS_DIR)
 from serializers.serializers import (FitRequest)
 
 # константы
@@ -143,7 +143,7 @@ def extract_and_save_data(mp3_vocals_root, lmd_aligned_vocals_root, match_scores
     MP3_VOCALS_DIR = mp3_vocals_root
     MIDI_VOCALS_DIR = lmd_aligned_vocals_root
     MATCH_SCORES_PATH = match_scores_json
-    FEATURES_DIR = os.path.join(output_npz, ".npz")
+    FEATURES_DIR = output_npz + ".npz"
     
 
     with open(MATCH_SCORES_PATH, 'r', encoding='utf-8') as f:
@@ -301,7 +301,7 @@ def train_baseline_model_from_npz(input_npz: str, hyperparameters: Dict[str, Any
 
     npz_files = [f for f in os.listdir(input_npz) if f.endswith('.npz')]
     first_npz_file = os.path.join(input_npz, npz_files[0])
-
+    print(first_npz_file)
     data = np.load(first_npz_file)
     X_all = data["X"]
     Y_all = data["Y"]
@@ -391,6 +391,7 @@ def midi_from_prediction(y_pred: List[int], hop_length: int, sr: int, out_midi_p
 ################################ FUNCTIONS FOR API ################################
 async def run_extract_and_save_data(mp3_vocals_root, lmd_aligned_vocals_root, match_scores_json, output_npz):
     loop = asyncio.get_running_loop()
+    await asyncio.sleep(10)
     with ProcessPoolExecutor() as executor:
         await loop.run_in_executor(
             executor,
@@ -404,7 +405,7 @@ async def run_extract_and_save_data(mp3_vocals_root, lmd_aligned_vocals_root, ma
 def fit(request: FitRequest):
     model = train_baseline_model_from_npz(FEATURES_DIR, request.hyperparameters)
     MODEL_NAME = request.id
-    joblib.dump(model, os.path.join(MODELS_DIR, str(MODEL_NAME)))
+    joblib.dump(model, os.path.join(MODELS_DIR, str(MODEL_NAME) + ".pkl"))
     print(f"[INFO] Saved model id {request.id}  to {FEATURES_DIR}")
 
 def predict_model(MODEL_NAME, file: UploadFile = File(...)):

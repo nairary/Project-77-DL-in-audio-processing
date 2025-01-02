@@ -1,7 +1,7 @@
 import asyncio
 import sys, os
 import json
-from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Body
+from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Body, Request
 from http import HTTPStatus
 from typing import List, Dict, Optional
 
@@ -45,6 +45,7 @@ async def extract_features(
     "output_npz": "D:/Project-77-DL-in-audio-processing/logistical_regression/data/features/my_npz"
 }
     """
+    process_id = f"upload_{len(get_active_processes())+1}"
     if file:
         # Обработка загруженного .npz файла
         file_path = os.path.join(UPLOAD_DIR, file.filename)
@@ -53,8 +54,10 @@ async def extract_features(
             os.makedirs(UPLOAD_DIR)
 
         try:
+            await start_process(process_id, "features upload")
             with open(file_path, "wb") as f:
                 f.write(await file.read())
+            await end_process(process_id)    
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Ошибка записи файла: {str(e)}")
         
@@ -76,7 +79,6 @@ async def extract_features(
         if not all([mp3_vocals_root, lmd_aligned_vocals_root, match_scores_json, output_npz]):
             raise HTTPException(status_code=400, detail="Не все пути указаны в JSON")
         
-        process_id = len(get_active_processes())+1
         try:
             await start_process(process_id, "features extraction")
             await run_extract_and_save_data(mp3_vocals_root, lmd_aligned_vocals_root, match_scores_json, output_npz)
@@ -153,41 +155,40 @@ async def get_model_list():
     return ModelListResponse(message=model_names)
 
 @router.post("/set_model")
-async def set_model(request: ModelNameRequest):
+async def set_model(request: ModelNameRequest, request2: Request):
     """
     Назначает указанное имя модели в MODEL_NAME.
     """
-    global MODEL_NAME
     if not request.model_name.strip():
         raise HTTPException(
             status_code=400,
             detail="Model name cannot be empty or whitespace."
         )
-    
-    MODEL_NAME = request.model_name.strip()
-    return {"message": "Model name set successfully", "model_name": MODEL_NAME}
+    request2.app.state.MODEL_NAME = request.model_name.strip()
+    return {"message": "Model name set successfully", "model_name": request.model_name}
 
 @router.post("/get_selected_model")
-async def get_selected_model():
+async def get_selected_model(request: Request):
     """
-    Назначает указанное имя модели в MODEL_NAME.
+    Возвращает текущее имя модели.
     """
-    global MODEL_NAME
-    if not MODEL_NAME:
+    model_name = request.app.state.MODEL_NAME
+    print(model_name)
+    if not model_name:
         raise HTTPException(
             status_code=404,
-            detail=f"Model {MODEL_NAME} doesn't exist."
+            detail="MODEL_NAME is not initialized or model not found."
         )
-    
-    return {"message": "Successfully got model name", "model_name": MODEL_NAME}
+    return {"message": "Successfully got model name", "model_name": model_name}
+
 
 @router.post("/predict", response_model=PredictionResponse, status_code=HTTPStatus.OK)
-async def predict(file: UploadFile = File(...)):
-    global MODEL_NAME
+async def predict(request: Request, file: UploadFile = File(...)):
+    model_name = request.app.state.MODEL_NAME
     process_id = "predict"
     try:
         await start_process(process_id, "predict")
-        predictions = predict_model(MODEL_NAME, file)
+        predictions = predict_model(model_name, file)
         await end_process(process_id)
         return {"message": "Successfully made prediction", "midi_notes": predictions}
     except Exception as e:
@@ -199,9 +200,9 @@ async def get_status():
     try:
         active_processes = get_active_processes()
         if not active_processes:
-            return {"status": "No active models", "models": []}
+            return {"status": "No active processes", "processes": []}
 
-        models = list(active_processes.keys())
-        return {"status": "Active models", "models": models}
+        processes = list(active_processes.keys())
+        return GetStatusResponse(status="running", processes=processes)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))

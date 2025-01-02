@@ -7,7 +7,8 @@ from services.model_manager import (
     train_baseline_model_from_npz,
     fit,
     predict_pitch_sequence,
-    midi_from_prediction
+    midi_from_prediction,
+    run_extract_and_save_data
 )
 
 from services.process_manager import (
@@ -26,6 +27,7 @@ __all__ = [
     "fit",
     "predict_pitch_sequence",
     "midi_from_prediction",
+    "run_extract_and_save_data",
     "start_process",
     "end_process",
     "get_active_processes"
