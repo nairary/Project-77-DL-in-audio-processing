@@ -1,0 +1,16 @@
+version: '3.9'
+
+services:
+  frontend:
+    build:
+      context: ./Frontend
+    ports:
+      - "5000:5000"
+
+  backend:
+    build:
+      context: ./logistical_regression
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./logistical_regression:/app
