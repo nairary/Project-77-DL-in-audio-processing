@@ -1,6 +1,7 @@
 import io
 import sys, os
-from fastapi import APIRouter, HTTPException, UploadFile, File
+import json
+from fastapi import APIRouter, HTTPException, UploadFile, File, Form
 from http import HTTPStatus
 from typing import List, Dict, Optional
 
@@ -30,30 +31,51 @@ UPLOAD_DIR = FEATURES_DIR
 @router.post("/upload_data")
 async def extract_features(
     file: Optional[UploadFile] = File(None),
-    payload: Optional[Dict[str, str]] = None
+    payload: Optional[str] = Form(None)
 ):
     """
     Формирует датасет из загруженного файла .npz или JSON с путями.
+    пример JSON пэйлоада:
+    {
+    "mp3_vocals_root": "C:/ds/test_upload/mp3_vocals",
+    "lmd_aligned_vocals_root": "C:/ds/test_upload/lmd_aligned_vocals",
+    "match_scores_json": "C:/ds/test_upload/match-scores.json",
+    "output_npz": "D:/Project-77-DL-in-audio-processing/logistical_regression/data/features/my_npz"
+}
     """
     if file:
         # Обработка загруженного .npz файла
         file_path = os.path.join(UPLOAD_DIR, file.filename)
-        with open(file_path, "wb") as f:
-            f.write(await file.read())
+
+        if not os.path.exists(UPLOAD_DIR):
+            os.makedirs(UPLOAD_DIR)
+
+        try:
+            with open(file_path, "wb") as f:
+                f.write(await file.read())
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Ошибка записи файла: {str(e)}")
+        
         return {"message": f"Файл {file.filename} успешно обработан", "path": file_path}
 
     elif payload:
+
+        try:
+            payload_dict = json.loads(payload)
+        except json.JSONDecodeError:
+            raise HTTPException(status_code=400, detail="Некорректный формат JSON")
+
         # Обработка JSON с путями
-        mp3_vocals_root = payload.get("mp3_vocals_root")
-        lmd_aligned_vocals_root = payload.get("lmd_aligned_vocals_root")
-        match_scores_json = payload.get("match_scores_json")
-        output_npz = payload.get("output_npz")
+        mp3_vocals_root = payload_dict.get("mp3_vocals_root")
+        lmd_aligned_vocals_root = payload_dict.get("lmd_aligned_vocals_root")
+        match_scores_json = payload_dict.get("match_scores_json")
+        output_npz = payload_dict.get("output_npz")
 
         if not all([mp3_vocals_root, lmd_aligned_vocals_root, match_scores_json, output_npz]):
             raise HTTPException(status_code=400, detail="Не все пути указаны в JSON")
 
         extract_and_save_data(mp3_vocals_root, lmd_aligned_vocals_root, match_scores_json, output_npz)
-        return {"message": "Фичи успешно извлечены", "paths": payload}
+        return {"message": "Фичи успешно извлечены", "paths": payload_dict}
 
     else:
         raise HTTPException(status_code=400, detail="Необходимо предоставить файл .npz или JSON с путями")

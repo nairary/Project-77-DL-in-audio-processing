@@ -152,13 +152,11 @@ def extract_and_save_data(mp3_vocals_root, lmd_aligned_vocals_root, match_scores
                 best_md5 = m
         best_md5_map[msd_id] = best_md5
 
-    # Если msd_ids=None, смотрим все TR* папки
-    if msd_ids is None:
-        msd_ids = []
-        for d in os.listdir(MP3_VOCALS_DIR):
-            if d.startswith("TR") and os.path.isdir(os.path.join(MP3_VOCALS_DIR, d)):
-                msd_ids.append(d)
-
+    msd_ids = []
+    for d in os.listdir(MP3_VOCALS_DIR):
+        if d.startswith("TR") and os.path.isdir(os.path.join(MP3_VOCALS_DIR, d)):
+            msd_ids.append(d)
+            
     X_all, Y_all = [], []
 
     for msd_id in msd_ids:
