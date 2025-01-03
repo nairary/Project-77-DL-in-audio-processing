@@ -87,7 +87,7 @@ async def process_dataset(payload=None, file_path=None):
             form_data = aiohttp.FormData()
 
             # Если есть файл, добавляем
-            if file_path['file'] is not None:
+            if file_path is not None:
                 logger.info("Отправка датасета с файлом")
                 form_data.add_field(
                     name="file",
