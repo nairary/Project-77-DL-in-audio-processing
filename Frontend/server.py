@@ -20,11 +20,11 @@ handler.setFormatter(formatter)
 logger.addHandler(handler)
 
 # API endpoints
-UPLOAD_DATA_URL = "http://0.0.0.0:8000/api/v1/models/upload_data"
-TRAIN_MODEL_URL = "http://0.0.0.0:8000/api/v1/models/train_model"
-MODEL_INFO_URL = "http://0.0.0.0:8000/api/v1/models/get_model_list"
-PREDICT_MODEL_URL = "http://0.0.0.0:8000/api/v1/models/predict"  
-SELECT_MODEL_URL = "http://0.0.0.0:8000/api/v1/models/set_model"
+UPLOAD_DATA_URL = "http://backend:8000/api/v1/models/upload_data"
+TRAIN_MODEL_URL = "http://backend:8000/api/v1/models/train_model"
+MODEL_INFO_URL = "http://backend:8000/api/v1/models/get_model_list"
+PREDICT_MODEL_URL = "http://backend:8000/api/v1/models/predict"  
+SELECT_MODEL_URL = "http://backend:8000/api/v1/models/set_model"
 
 # Асинхронная функция для обработки аудиофайла
 async def run_prediction_and_process(uploaded_audio):
@@ -58,8 +58,8 @@ async def run_prediction_and_process(uploaded_audio):
             form_data = aiohttp.FormData()
             form_data.add_field(
                 "file",
-                uploaded_audio,
-                filename=uploaded_audio.name,
+                uploaded_audio.getvalue(),
+                filename="uploaded_audio.wav",
                 content_type="audio/wav"
             )
             async with session.post(PREDICT_MODEL_URL, data=form_data) as response:
