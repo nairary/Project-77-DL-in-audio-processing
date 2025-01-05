@@ -4,3 +4,27 @@
 /Visualize_spectr/tests
 
 /Visualize_spectr/Visualize_spectr/__pycache__
+
+logistical_regression.zip
+
+/logistical_regression/dataset_full_min.v2.3.npz
+/logistical_regression/dataset_full_min.npz
+
+/logistical_regression/data/dataset/
+/logistical_regression/data/feats/
+/logistical_regression/data/models/
+/logistical_regression/data/predictions/
+
+/logistical_regression/misc/*.wav
+/logistical_regression/misc/*.mid
+
+logistical_regression/dataset_full_min.npz
+logistical_regression/dataset_full_min.v2.3.npz
+logistical_regression/misc/Everlong_vocals.wav
+logistical_regression/data/feats/dataset_full.npz
+.../data/models/model_full_v2.2.pkl
+logistical_regression.zip
+
+__pycache__/
+*.cpython-311.pyc
+*.pyc

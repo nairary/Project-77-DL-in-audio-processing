@@ -9,32 +9,14 @@
 
 ## Wiki
 
-[Wiki](https://github.com/nairary/Project-77-DL-in-audio-processing/wiki/Dev‐vlog‐01)
+[datasets](https://github.com/nairary/Project-77-DL-in-audio-processing/wiki/datasets.md)
 
-## Полезные ссылки
-(потом уберу)
-https://arxiv.org/pdf/2302.00286
+[Dev-vlog-01](https://github.com/nairary/Project-77-DL-in-audio-processing/wiki/Dev‐vlog‐01)
 
+[Dev-vlog-02](https://github.com/nairary/Project-77-DL-in-audio-processing/wiki/Dev‐vlog‐02)
 
-https://github.com/vpavlenko/study-music/blob/main/parts/transcription.md
+[Dev-vlog-03](https://github.com/nairary/Project-77-DL-in-audio-processing/wiki/Dev‐vlog‐03)
 
-
-https://paperswithcode.com/dataset/fma
-
-
-https://github.com/KinWaiCheuk/Jointist
-
-
-https://arxiv.org/html/2402.15569v1
-
-
-https://colinraffel.com/publications/thesis.pdf
-
-
-https://github.com/craffel/midi-dataset/tree/master
-
-https://raw.githubusercontent.com/chrisdonahue/sheetsage/paper/sheetsage.pdf
-
-https://github.com/chrisdonahue/sheetsage/tree/main
-
-https://github.com/NovaFrost/SHS100K
+___
+# Описание к 4 чекпоинту тут
+[Dev-vlog-04](https://github.com/nairary/Project-77-DL-in-audio-processing/wiki/Dev‐vlog‐04)
