@@ -11,6 +11,11 @@ from services.model_manager import (
     run_extract_and_save_data
 )
 
+from services.model_evaluation import (
+    tune_hyperparameters,
+    evaluate_model
+)
+
 from services.process_manager import (
     start_process,
     end_process,
@@ -30,5 +35,7 @@ __all__ = [
     "run_extract_and_save_data",
     "start_process",
     "end_process",
-    "get_active_processes"
+    "get_active_processes",
+    "tune_hyperparameters",
+    "evaluate_model"
 ]

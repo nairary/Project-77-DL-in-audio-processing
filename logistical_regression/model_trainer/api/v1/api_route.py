@@ -10,6 +10,10 @@ from services.model_manager import (
     fit,
     predict_model
 )
+from services.model_evaluation import (
+    evaluate_model, 
+    tune_hyperparameters
+)
 from services.process_manager import (
     start_process,
     end_process,
@@ -22,6 +26,12 @@ from serializers.serializers import (
     PredictionResponse,
     FitResponse,
     GetStatusResponse
+)
+from serializers.serializers import (
+    ModelEvaluationRequest, 
+    ModelEvaluationResponse,
+    HyperparameterTuningRequest,
+    HyperparameterTuningResponse
 )
 
 from settings.config import (MODELS_DIR, FEATURES_DIR, MODEL_NAME)
@@ -214,3 +224,30 @@ async def get_status():
         return GetStatusResponse(status="running", processes=processes)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+@router.post("/tune", response_model=HyperparameterTuningResponse)
+async def hyperparameter_tuning(request: HyperparameterTuningRequest = Body(...)):
+    """
+    Perform hyperparameter tuning using GridSearchCV to find optimal parameters
+    for the pitch detection model.
+    """
+    try:
+        result = await tune_hyperparameters(request)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error during hyperparameter tuning: {str(e)}")
+
+@router.post("/evaluate", response_model=ModelEvaluationResponse)
+async def model_evaluation(request: ModelEvaluationRequest = Body(...)):
+    """
+    Evaluate a trained model on a test set and return performance metrics.
+    """
+    try:
+        result = await evaluate_model(
+            model_name=request.model_name,
+            test_split=request.test_split,
+            random_state=request.random_state
+        )
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error during model evaluation: {str(e)}")

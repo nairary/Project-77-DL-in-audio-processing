@@ -6,7 +6,11 @@ from .serializers import (
     FitResponse,
     ModelListResponse,
     ModelNameRequest,
-    GetStatusResponse
+    GetStatusResponse,
+    ModelEvaluationRequest,
+    ModelEvaluationResponse,
+    HyperparameterTuningRequest,
+    HyperparameterTuningResponse
 )
 
 __all__ = [
@@ -17,5 +21,9 @@ __all__ = [
     "FitResponse",
     "ModelListResponse",
     "ModelNameRequest",
-    "GetStatusResponse"
+    "GetStatusResponse",
+    "ModelEvaluationRequest",
+    "ModelEvaluationResponse",
+    "HyperparameterTuningRequest",
+    "HyperparameterTuningResponse"
 ]

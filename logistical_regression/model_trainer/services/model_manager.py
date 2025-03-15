@@ -18,7 +18,7 @@ from serializers.serializers import (FitRequest)
 # константы
 SR = 22050
 HOP_LENGTH = 512
-CONTEXT_SIZE = 10
+CONTEXT_SIZE = 22
 N_MELS = 80
 SILENCE_PITCH = -1
 

@@ -1,0 +1,16 @@
+curl -X POST http://localhost:8000/api/v1/models/upload_data \$ curl -X POST http://localhost:8000/api/v1/models/tune \
+-H "Content-Type: multipart/form-data" \
+-F 'tuning_request = {
+    "model_name": "pitch_model_v1",
+    "parameter_grid": {
+        "loss": ["log_loss", "hinge"],
+        "penalty": ["l1", "l2", "elasticnet"],
+        "alpha": [0.0001, 0.001, 0.01],
+        "class_weight": [None, "balanced"]
+    },
+    "cv_folds": 3,
+    "scoring_metric": "f1_weighted",
+    "n_jobs": 19,
+    "max_samples": 20000,
+    "save_best_model": True
+}'

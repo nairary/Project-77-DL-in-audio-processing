@@ -1,0 +1,8 @@
+curl -X POST http://localhost:8000/api/v1/models/upload_data \$ curl -X POST http://localhost:8000/api/v1/models/upload_data \
+-H "Content-Type: multipart/form-data" \
+-F 'payload={
+    "mp3_vocals_root": "/home/humtech/HSE/Project-77-DL-in-audio-processing/Dataset/LMD/mp3_vocals",
+    "lmd_aligned_vocals_root": "/home/humtech/HSE/Project-77-DL-in-audio-processing/Dataset/LMD/lmd_aligned_vocals",
+    "match_scores_json": "/home/humtech/HSE/Project-77-DL-in-audio-processing/Dataset/LMD/match-scores.json",
+    "output_npz": "/home/humtech/HSE/Project-77-DL-in-audio-processing/logistical_regression/data/features/my_npz"
+}'

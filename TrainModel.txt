@@ -1,0 +1,14 @@
+curl -X POST http://localhost:8000/api/v1/models/train_model -H "Content-Type: application/json" -d '{
+  "id": 4,
+  "hyperparameters": {
+    "n_jobs": 19,
+    "penalty": "l2",
+    "loss": "log_loss",
+    "optional": {
+      "max_iter": 10000,
+      "multi_class": "multinomial",
+      "solver": "saga",
+      "tol": 1e-4,
+      "C": 1.0
+    }
+}'}

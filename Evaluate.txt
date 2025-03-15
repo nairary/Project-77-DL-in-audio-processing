@@ -1,0 +1,7 @@
+curl -X POST http://localhost:8000/api/v1/models/upload_data \$ curl -X POST http://localhost:8000/api/v1/models/evaluate \
+-H "Content-Type: multipart/form-data" \
+-F 'eval_request = {
+    "model_name": "pitch_model_v1",
+    "test_split": 0.2,
+    "random_state": 42
+}'

@@ -1,0 +1,1 @@
+curl -X POST http://localhost:8000/api/v1/models/set_model -H "Content-Type: application/json" -d '{"model_name": "4.pkl"}'
