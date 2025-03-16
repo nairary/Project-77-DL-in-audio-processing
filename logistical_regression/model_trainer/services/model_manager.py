@@ -18,7 +18,7 @@ from serializers.serializers import (FitRequest)
 # константы
 SR = 22050
 HOP_LENGTH = 512
-CONTEXT_SIZE = 22
+CONTEXT_SIZE = 10
 N_MELS = 80
 SILENCE_PITCH = -1
 
@@ -219,97 +219,326 @@ def extract_and_save_data(mp3_vocals_root, lmd_aligned_vocals_root, match_scores
     print(f"[INFO] Saving dataset: X={X_all.shape}, Y={Y_all.shape} to {FEATURES_DIR}")
     np.savez(FEATURES_DIR, X=X_all, Y=Y_all, allow_pickle=False)
     print("[INFO] Done saving dataset.")
+########################## BALANCING ################################
+def balance_dataset(X: np.ndarray, Y: np.ndarray, silence_ratio: float = 0.3, 
+                    min_class_samples: int = 50) -> tuple:
+    print(f"[INFO] Original dataset shape: {X.shape}, {Y.shape}")
+    
+    # Get unique classes and their counts
+    classes, counts = np.unique(Y, return_counts=True)
+    class_indices = {cls: np.where(Y == cls)[0] for cls in classes}
+    
+    # Calculate target counts
+    total_samples = len(Y)
+    silence_samples = counts[0] if 0 in classes else 0
+    non_silence_samples = total_samples - silence_samples
+    
+    # Determine target silence samples
+    target_total = non_silence_samples / (1 - silence_ratio) if silence_ratio < 1.0 else total_samples
+    target_silence = int(target_total * silence_ratio)
+    
+    # Ensure target_silence doesn't exceed current silence count
+    target_silence = min(target_silence, silence_samples)
+    
+    # Calculate target counts for non-silence classes
+    # Balance them while ensuring minimum samples
+    non_silence_classes = [c for c in classes if c != 0]
+    
+    # Initialize array to collect balanced data
+    X_balanced = []
+    Y_balanced = []
+    
+    # Handle silence class (0)
+    if 0 in classes:
+        # Randomly select target_silence samples from silence class
+        silence_indices = class_indices[0]
+        selected_silence = np.random.choice(silence_indices, target_silence, replace=False)
+        X_balanced.append(X[selected_silence])
+        Y_balanced.append(Y[selected_silence])
+        print(f"[INFO] Silence class reduced from {silence_samples} to {target_silence} samples")
+    
+    # Handle non-silence classes
+    for cls in non_silence_classes:
+        cls_indices = class_indices[cls]
+        cls_count = len(cls_indices)
+        
+        # Skip empty classes
+        if cls_count == 0:
+            continue
+        
+            
+        # If class has fewer than min_class_samples, use all samples
+        if cls_count <= min_class_samples:
+            selected_indices = cls_indices
+        else:
+            # Otherwise use min_class_samples or more
+            target_cls_count = min(cls_count, min_class_samples * 5)  # Cap at 5x the minimum
+            selected_indices = np.random.choice(cls_indices, target_cls_count, replace=False)
+        
+        X_balanced.append(X[selected_indices])
+        Y_balanced.append(Y[selected_indices])
+        print(f"[INFO] Class {cls} adjusted from {cls_count} to {len(selected_indices)} samples")
+    
+    # Combine all selected samples
+    X_balanced = np.vstack(X_balanced)
+    Y_balanced = np.concatenate(Y_balanced)
+    
+    # Shuffle the combined dataset
+    shuffle_idx = np.random.permutation(len(Y_balanced))
+    X_balanced = X_balanced[shuffle_idx]
+    Y_balanced = Y_balanced[shuffle_idx]
+    
+    print(f"[INFO] Balanced dataset shape: {X_balanced.shape}")
+    
+    # Print class distribution summary
+    balanced_classes, balanced_counts = np.unique(Y_balanced, return_counts=True)
+    print(f"[INFO] Top 5 classes in balanced data:")
+    top_classes = np.argsort(balanced_counts)[-5:]
+    for i in reversed(top_classes):
+        cls = balanced_classes[i]
+        count = balanced_counts[i]
+        print(f"    Class {cls}: {count} samples ({count/len(Y_balanced)*100:.2f}%)")
+    
+    return X_balanced, Y_balanced
+
+def augment_minority_classes(X: np.ndarray, Y: np.ndarray, 
+                            min_samples_per_class: int = 100,
+                            augmentation_factor: float = 1.2) -> tuple:
+    # Determine classes that need augmentation
+    classes, counts = np.unique(Y, return_counts=True)
+    class_indices = {cls: np.where(Y == cls)[0] for cls in classes}
+    
+    X_aug_list = [X]
+    Y_aug_list = [Y]
+    
+    # Skip silence class (0) for augmentation
+    for cls in classes:
+        if cls == 0:  # Skip silence class
+            continue
+            
+        cls_count = counts[np.where(classes == cls)[0][0]]
+        
+        if cls_count < min_samples_per_class and cls_count > 0:
+            # How many samples to add
+            samples_to_add = min(min_samples_per_class - cls_count, cls_count * 2)
+            
+            # Get original samples for this class
+            orig_indices = class_indices[cls]
+            
+            # Sample with replacement if we need more than we have
+            sample_indices = np.random.choice(orig_indices, samples_to_add, replace=True)
+            samples_to_augment = X[sample_indices]
+            
+            # Apply random noise augmentation
+            noise_level = np.std(samples_to_augment) * augmentation_factor * 0.1
+            noise = np.random.normal(0, noise_level, samples_to_augment.shape)
+            augmented_samples = samples_to_augment + noise
+            
+            # Add augmented samples to our lists
+            X_aug_list.append(augmented_samples)
+            Y_aug_list.append(np.full(samples_to_add, cls))
+            
+            print(f"[INFO] Augmented class {cls} with {samples_to_add} new samples")
+    
+    # Combine original and augmented data
+    X_augmented = np.vstack(X_aug_list)
+    Y_augmented = np.concatenate(Y_aug_list)
+    
+    # Shuffle the data
+    shuffle_idx = np.random.permutation(len(Y_augmented))
+    X_augmented = X_augmented[shuffle_idx]
+    Y_augmented = Y_augmented[shuffle_idx]
+    
+    print(f"[INFO] After augmentation: {X_augmented.shape}")
+    return X_augmented, Y_augmented
+
+class WeightedBatchSampler:
+    """
+    Sample mini-batches with class balancing for SGDClassifier training
+    """
+    def __init__(self, y, batch_size, class_weights=None):
+        self.y = np.array(y)
+        self.batch_size = batch_size
+        self.classes, self.counts = np.unique(y, return_counts=True)
+        self.n_samples = len(y)
+        
+        # Compute class weights if not provided
+        if class_weights is None:
+            # Inverse frequency weighting
+            self.class_weights = 1.0 / (self.counts + 1)
+            # Normalize
+            self.class_weights = self.class_weights / np.sum(self.class_weights) * len(self.classes)
+        else:
+            self.class_weights = class_weights
+        
+        # Map classes to sample indices
+        self.class_indices = {}
+        for cls in self.classes:
+            self.class_indices[cls] = np.where(self.y == cls)[0]
+    
+    def sample_batch(self):
+        """Sample a balanced batch of indices"""
+        batch_indices = []
+        
+        # Determine how many samples to take from each class
+        # Inversely proportional to class frequency, with minimum samples for rare classes
+        total_weight = np.sum([self.class_weights[i] for i, cls in enumerate(self.classes)])
+        class_samples = {cls: max(1, int(self.batch_size * self.class_weights[i] / total_weight))
+                        for i, cls in enumerate(self.classes)}
+        
+        # Adjust to match batch size
+        total_selected = sum(class_samples.values())
+        if total_selected < self.batch_size:
+            # If under batch size, add samples from larger classes
+            diff = self.batch_size - total_selected
+            for cls in sorted(self.classes, key=lambda c: self.counts[np.where(self.classes == c)[0][0]], reverse=True):
+                if diff <= 0:
+                    break
+                add_samples = min(diff, len(self.class_indices[cls]) - class_samples[cls])
+                if add_samples > 0:
+                    class_samples[cls] += add_samples
+                    diff -= add_samples
+        
+        # Sample from each class
+        for cls, n_samples in class_samples.items():
+            if n_samples <= 0 or len(self.class_indices[cls]) == 0:
+                continue
+                
+            # Sample with replacement if needed
+            replacement = n_samples > len(self.class_indices[cls])
+            sampled = np.random.choice(self.class_indices[cls], size=n_samples, replace=replacement)
+            batch_indices.extend(sampled)
+        
+        # Final shuffle
+        np.random.shuffle(batch_indices)
+        return batch_indices[:self.batch_size]
+
 
 ################################ FIT ################################
 
-def sgd_train_iterative(X: List[List[float]], y: List[float], n_epochs: int = 10, batch_size: int = 1000, hyperparameters: Dict[str, Any] = {}) -> SGDClassifier:
+def sgd_train_iterative(X: np.ndarray, y: np.ndarray, n_epochs: int = 10, 
+                       batch_size: int = 1000, hyperparameters: Dict[str, Any] = {}) -> SGDClassifier:
     """
-    Итеративно обучает SGDClassifier на X, y, 
-    разбивая данные на mini-batches (batch_size).
+    Iteratively trains SGDClassifier on X, y with balanced mini-batches.
     
-    Параметры:
-      X, y        - матрица признаков и метки (numpy arrays)
-      n_epochs    - сколько эпох (полных проходов по данным)
-      batch_size  - размер мини-батча
-      n_jobs      - кол-во потоков (ядер); -1 => использовать все
+    Parameters:
+      X, y        - feature matrix and labels (numpy arrays)
+      n_epochs    - number of epochs (full passes over the data)
+      batch_size  - mini-batch size
+      hyperparameters - dictionary of model hyperparameters
     
-    Возвращает обученный SGDClassifier.
+    Returns trained SGDClassifier.
     """
+    # Apply data balancing if requested
+    if hyperparameters.get("balance_dataset", True):
+        silence_ratio = hyperparameters.get("silence_ratio", 0.3)
+        min_class_samples = hyperparameters.get("min_class_samples", 1000)
+        X, y = balance_dataset(X, y, silence_ratio, min_class_samples)
+    
+    # Apply augmentation if requested
+    if hyperparameters.get("augment_minority", True):
+        min_samples = hyperparameters.get("min_samples_per_class", 50)
+        aug_factor = hyperparameters.get("augmentation_factor", 1.2)
+        X, y = augment_minority_classes(X, y, min_samples, aug_factor)
 
     classes_ = np.unique(y)
     class_weights = compute_class_weight('balanced', classes=classes_, y=y)
     class_weight_dict = {cls: weight for cls, weight in zip(classes_, class_weights)}
     print(f"[INFO] Class weights: {class_weight_dict}")
 
-    # Создаём модель. Параметры для примера:
+    # Create model with hyperparameters
     clf = SGDClassifier(
         loss=hyperparameters.get("loss", "log_loss"),
         penalty=hyperparameters.get("penalty", "l2"),
-        max_iter=2,         # Мы будем сами управлять циклами (n_epochs)
+        alpha=hyperparameters.get("alpha", 0.0001),
+        max_iter=2,
         class_weight=class_weight_dict,
-        warm_start=True,     # Чтобы обучаться итеративно, не сбрасывая веса
-        shuffle=False,       # Будем сами решать, хотим ли перемешивать
-        n_jobs=hyperparameters.get("n_jobs", -1)       # Использовать несколько ядер
+        warm_start=True,
+        shuffle=False,
+        n_jobs=hyperparameters.get("n_jobs", -1)
     )
     
-    # Инициализируем модель "нулевым" fit (чтобы задать параметры и создать структуру)
-    # Берём небольшой кусочек данных. Или можно просто fit на одном mini-batch,
-    # иначе partial_fit требует обязательно указывать classes=...
+    # Initialize with a small batch
     first_batch_size = min(batch_size, X.shape[0])
-    
     X_init = X[:first_batch_size]
     y_init = y[:first_batch_size]
     clf.partial_fit(X_init, y_init, classes=classes_)
 
-    # Для каждой эпохи (n_epochs)
+    # Use weighted batch sampler if requested
+    use_weighted_sampler = hyperparameters.get("use_weighted_sampler", True)
+    if use_weighted_sampler:
+        batch_sampler = WeightedBatchSampler(y, batch_size)
+    
     n_samples = X.shape[0]
     for epoch in range(n_epochs):
         print(f"\n=== Epoch {epoch+1}/{n_epochs} ===")
         
-        # Можно перемешивать порядок индексов, чтобы батчи шли вразнобой
-        indices = np.arange(n_samples)
-        np.random.shuffle(indices)
-        
-        # Проходимся по mini-batches
         batch_count = 0
-        for start_idx in range(0, n_samples, batch_size):
-            end_idx = min(start_idx + batch_size, n_samples)
-            batch_indices = indices[start_idx:end_idx]
-            
-            X_batch = X[batch_indices]
-            y_batch = y[batch_indices]
-            
-            # Обучаем на этом кусочке
-            clf.partial_fit(X_batch, y_batch)
-            
-            batch_count += 1
-            # Можно печатать, на каком батче мы находимся
-            # Но если batch_size маленький, это будет много вывода
-            # print(f"  Batch {batch_count} done.")
         
-        # После окончания эпохи печатаем сообщение
-        print(f"Epoch {epoch+1} complete. Processed ~{batch_count} mini-batches.")
+        if use_weighted_sampler:
+            # Training with weighted batch sampler
+            n_batches = n_samples // batch_size
+            for _ in range(n_batches):
+                batch_indices = batch_sampler.sample_batch()
+                X_batch = X[batch_indices]
+                y_batch = y[batch_indices]
+                clf.partial_fit(X_batch, y_batch)
+                batch_count += 1
+        else:
+            # Regular training with shuffled indices
+            indices = np.arange(n_samples)
+            np.random.shuffle(indices)
+            
+            for start_idx in range(0, n_samples, batch_size):
+                end_idx = min(start_idx + batch_size, n_samples)
+                batch_indices = indices[start_idx:end_idx]
+                
+                X_batch = X[batch_indices]
+                y_batch = y[batch_indices]
+                clf.partial_fit(X_batch, y_batch)
+                batch_count += 1
+        
+        print(f"Epoch {epoch+1} complete. Processed {batch_count} mini-batches.")
 
     return clf
 
 def train_baseline_model_from_npz(input_npz: str, hyperparameters: Dict[str, Any]) -> SGDClassifier:
     """
-    1) Загружает X, Y из .npz
-    2) Обучает LogisticRegression (или другую модель).
-    3) Возвращает модель.
+    1) Loads X, Y from .npz
+    2) Applies class balancing techniques
+    3) Trains a classifier with balanced batches
+    4) Returns the trained model
     """
-
     npz_files = [f for f in os.listdir(input_npz) if f.endswith('.npz')]
     first_npz_file = os.path.join(input_npz, npz_files[0])
-    print(first_npz_file)
+    print(f"[INFO] Loading dataset from {first_npz_file}")
+    
     data = np.load(first_npz_file)
     X_all = data["X"]
     Y_all = data["Y"]
-    print(f"[INFO] Loaded dataset from {input_npz}, X={X_all.shape}, Y={Y_all.shape}")
-
-    clf = sgd_train_iterative(X_all, Y_all, n_epochs=10, batch_size=2000, hyperparameters=hyperparameters.dict())
-    clf.fit(X_all, Y_all)
-    print(f"[INFO] Model trained (X={X_all.shape}, Y={Y_all.shape})")
+    print(f"[INFO] Loaded dataset: X={X_all.shape}, Y={Y_all.shape}")
+    
+    # Get initial class distribution before balancing
+    classes, counts = np.unique(Y_all, return_counts=True)
+    print(f"[INFO] Initial class distribution: {len(classes)} classes")
+    print(f"[INFO] Silence class (0) count: {counts[0]} ({counts[0]/len(Y_all)*100:.2f}%)")
+    print(f"[INFO] Non-silence samples: {len(Y_all) - counts[0]} ({(len(Y_all) - counts[0])/len(Y_all)*100:.2f}%)")
+    
+    # Extract hyperparameters with defaults if not provided
+    n_epochs = hyperparameters.get("n_epochs", 10)
+    batch_size = hyperparameters.get("batch_size", 2000)
+    
+    # Train model with our improved training function
+    clf = sgd_train_iterative(
+        X_all, 
+        Y_all, 
+        n_epochs=n_epochs, 
+        batch_size=batch_size, 
+        hyperparameters=hyperparameters
+    )
+    
+    # Return the trained classifier
+    print(f"[INFO] Model training complete")
     return clf
 
 ################################ PREDICT ################################
